@@ -8,10 +8,8 @@ import sys
 from collections import Counter
 from pathlib import Path
 
-TRANSCRIPTS_DIR = os.path.expanduser(
-    "~/.cursor/projects/Users-alexandre-vea-Projects-TSE/agent-transcripts"
-)
-DATA_DIR = os.path.expanduser("~/.cursor/skills/text-pattern-detector/data")
+PROJECTS_DIR = os.path.expanduser("~/.cursor/projects")
+DATA_DIR = os.path.expanduser("~/.cursor/skills/text-shortcut-manager/data")
 STATE_FILE = os.path.join(DATA_DIR, "state.json")
 
 MIN_PHRASE_WORDS = 5
@@ -113,7 +111,7 @@ def scan(incremental=True):
     state = load_state()
     scanned = set(state["scanned_files"])
 
-    transcript_files = sorted(Path(TRANSCRIPTS_DIR).glob("*.txt"))
+    transcript_files = sorted(Path(PROJECTS_DIR).glob("*/agent-transcripts/*.txt"))
 
     if incremental:
         new_files = [f for f in transcript_files if f.name not in scanned]
