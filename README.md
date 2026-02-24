@@ -4,7 +4,7 @@ A collection of Cursor IDE Agent Skills for streamlining Datadog Technical Suppo
 
 ## Purpose
 
-This repository contains reusable Agent Skills that teach Cursor's AI assistant how to perform specialized TSE tasks: checking ticket queues, analyzing flares, querying customer data, and more.
+This repository contains reusable Agent Skills that teach Cursor's AI assistant how to perform specialized TSE tasks: checking ticket queues, recording screens, managing text shortcuts, and more.
 
 Skills live **both locally** (`~/.cursor/skills/`) and in this GitHub repo for versioning and sharing.
 
@@ -12,14 +12,35 @@ Skills live **both locally** (`~/.cursor/skills/`) and in this GitHub repo for v
 
 ```
 zendesk-ticket-pool/
-└── SKILL.md              # Zendesk ticket pool checker via Glean MCP
+└── SKILL.md                        # Zendesk ticket pool checker via Glean MCP
+
+voice-to-text/
+├── SKILL.md                        # macOS Dictation setup for voice input in Cursor
+└── scripts/
+    ├── setup.sh                    # Verify Dictation prerequisites
+    └── dictate.sh                  # Trigger Dictation via AppleScript
+
+snagit-screen-record/
+├── SKILL.md                        # Snagit video capture from Cursor
+└── scripts/
+    ├── setup.sh                    # Verify Snagit prerequisites
+    └── record.sh                   # Trigger Snagit capture via AppleScript
+
+text-shortcut-manager/
+├── SKILL.md                        # Detect recurring phrases + manage espanso shortcuts
+└── scripts/
+    ├── scan.py                     # Scan transcripts for repeated phrases
+    └── manage.py                   # Add/list/remove espanso shortcuts
 ```
 
 ## Available Skills
 
-| Skill | Description | Trigger |
-|-------|-------------|--------|
-| `zendesk-ticket-pool` | Check assigned Zendesk tickets (open/pending) with priority, follow-up detection, stale ticket alerts | "check my tickets", "ticket pool", conversation start |
+| Skill | Description | Trigger | Prerequisites |
+|-------|-------------|---------|---------------|
+| `zendesk-ticket-pool` | Check assigned Zendesk tickets (open/pending) with priority, follow-up detection, stale ticket alerts | "check my tickets", "ticket pool" | Glean MCP |
+| `voice-to-text` | Enable macOS native Dictation for voice input in Cursor chat | "setup voice", "dictation" | macOS, Fn key configured |
+| `snagit-screen-record` | Start Snagit video capture via text or voice command | "start recording", "record screen" | Snagit 2024, Accessibility permissions |
+| `text-shortcut-manager` | Scan Cursor transcripts for recurring phrases, create espanso text shortcuts automatically | "scan my patterns", "add shortcut" | espanso (`brew install espanso`) |
 
 ## Installation
 
@@ -35,8 +56,11 @@ Cursor automatically discovers skills from `~/.cursor/skills/*/SKILL.md`.
 
 ### Prerequisites
 
-- **Glean MCP** configured in Cursor (for Zendesk access via Glean)
 - **Cursor IDE** with Agent mode enabled
+- **macOS** (skills use AppleScript and macOS-specific paths)
+- **Glean MCP** configured in Cursor (for `zendesk-ticket-pool`)
+- **espanso** (`brew install espanso`) for `text-shortcut-manager`
+- **Snagit 2024** for `snagit-screen-record`
 
 ## How Skills Work
 
