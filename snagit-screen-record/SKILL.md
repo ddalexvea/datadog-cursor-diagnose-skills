@@ -1,6 +1,6 @@
 ---
 name: snagit-screen-record
-description: Start and stop Snagit screen recordings via voice or text commands. Use when the user says "start recording", "stop recording", "screen record", "capture video", or mentions Snagit recording.
+description: Start a Snagit screen recording via voice or text commands. Use when the user says "start recording", "record screen", "capture video", or mentions Snagit recording.
 ---
 
 # Snagit Screen Record
@@ -15,48 +15,23 @@ Control Snagit 2024 video capture from Cursor via AppleScript automation.
 
 Run setup check: `bash ~/.cursor/skills/snagit-screen-record/scripts/setup.sh`
 
-## Commands
-
-### Start Recording
+## Usage
 
 When the user says **"start recording"**, **"record screen"**, or **"capture video"**:
 
 ```bash
-bash ~/.cursor/skills/snagit-screen-record/scripts/record.sh start
-```
-
-This activates Snagit, ensures video capture mode, and triggers the capture hotkey. The user then selects the screen region and clicks "Record".
-
-### Stop Recording
-
-When the user says **"stop recording"** or **"stop capture"**:
-
-```bash
-bash ~/.cursor/skills/snagit-screen-record/scripts/record.sh stop
-```
-
-This triggers the stop shortcut. The recording opens in Snagit Editor for review/saving.
-
-### Toggle (Start/Stop)
-
-When the user says just **"recording"** or **"toggle recording"**:
-
-```bash
-bash ~/.cursor/skills/snagit-screen-record/scripts/record.sh toggle
+bash ~/.cursor/skills/snagit-screen-record/scripts/record.sh
 ```
 
 ## Workflow
 
 1. User says "start recording"
-2. Agent runs the start script
-3. Snagit capture overlay appears -- user selects region and clicks Record
-4. User does their work
-5. User says "stop recording"
-6. Agent runs the stop script
-7. Recording opens in Snagit Editor
+2. Agent runs the script
+3. Snagit capture overlay appears
+4. User selects the recording area and clicks Record
+5. User stops the recording via Snagit's floating stop button
 
 ## Troubleshooting
 
 - **Nothing happens**: Check Accessibility permissions and run `setup.sh`
-- **Wrong capture mode**: Script auto-switches to video mode if needed
 - **Snagit not running**: Script auto-launches Snagit
