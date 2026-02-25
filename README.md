@@ -12,8 +12,8 @@ Skills live **both locally** (`~/.cursor/skills/`) and in this GitHub repo for v
 
 | Skill | Description | Trigger | Prerequisites |
 |-------|-------------|---------|---------------|
-| `ticket-watcher` | **Autonomous background watcher** — loops in a dedicated chat, detects new Zendesk tickets via Glean, sends macOS notifications, launches `ticket-investigator` subagents | "start the ticket watcher", "watch my tickets" | Glean MCP |
-| `ticket-investigator` | Deep investigation of a specific ticket — reads content, searches similar cases, checks docs, gathers customer context, writes report | "investigate ticket #XYZ", "look into ZD-XYZ" | Glean MCP |
+| `zendesk-ticket-watcher` | **Autonomous background watcher** — loops in a dedicated chat, detects new Zendesk tickets via Glean, sends macOS notifications, launches `zendesk-ticket-investigator` subagents | "start the ticket watcher", "watch my tickets" | Glean MCP |
+| `zendesk-ticket-investigator` | Deep investigation of a specific ticket — reads content, searches similar cases, checks docs & GitHub code, gathers customer context, writes report | "investigate ticket #XYZ", "look into ZD-XYZ" | Glean MCP |
 | `zendesk-ticket-pool` | Check assigned Zendesk tickets (open/pending) with priority, follow-up detection, stale ticket alerts | "check my tickets", "ticket pool" | Glean MCP |
 | `zendesk-ticket-routing` | Identify which TS specialization and engineering team owns a ticket topic | "which spec", "route ticket" | Glean MCP |
 | `snagit-screen-record` | Start Snagit video capture via text or voice command | "start recording", "record screen" | Snagit 2024, Accessibility permissions |
@@ -50,7 +50,7 @@ Skills are markdown instruction files that the AI agent reads when it determines
 
 ## Ticket Watcher Architecture
 
-The `ticket-watcher` skill uses a unique approach — no cron, no extensions, no external schedulers:
+The `zendesk-ticket-watcher` skill uses a unique approach — no cron, no extensions, no external schedulers:
 
 ```
 Dedicated Agent Chat (looping) → Glean MCP → detect new tickets

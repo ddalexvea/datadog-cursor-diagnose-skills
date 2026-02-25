@@ -1,0 +1,202 @@
+[
+  {
+    "phrase": "thank you for reaching out to datadog",
+    "count": 6
+  },
+  {
+    "phrase": "my name is alexandre, and i am a technical support engineer here at datadog",
+    "count": 5
+  },
+  {
+    "phrase": "ill be assisting you with your request today",
+    "count": 4
+  },
+  {
+    "phrase": "after redeploying workloads, pods appear in a pending state for several minutes and eventually transition to an error status, as shown in the attached screenshots",
+    "count": 3
+  },
+  {
+    "phrase": "even though we see some stats about the containers the issue it self is that why we are seeing these errors on our agents",
+    "count": 3
+  },
+  {
+    "phrase": "verify volume with matching name exists in allowlist",
+    "count": 3
+  },
+  {
+    "phrase": "3have you check in log explore via live tail",
+    "count": 3
+  },
+  {
+    "phrase": "in minikube to answer this questions: i would like that the operator installed, automatically sets a agent version that works for the operator version do you know if this is something that will be looked into on your side? also, when i put in the clusteragent image tag override as you mentioned, nothing happened. i manually had to change the cluster agent deployment to use the 7.72.0 tag.",
+    "count": 2
+  },
+  {
+    "phrase": "i would like that the operator installed, automatically sets a agent version that works for the operator version do you know if this is something that will be looked into on your side",
+    "count": 2
+  },
+  {
+    "phrase": "we are currently setting up datadog monitoring on our aws eks clusters that run exclusively on fargate there are no ec2 worker nodes or ecs workloads in this environment",
+    "count": 2
+  },
+  {
+    "phrase": "we need help; i don't know if there are any limitations or if something needs to be enabled to receive these logs, or if there's a specific configuration required",
+    "count": 2
+  },
+  {
+    "phrase": "additionally, inside the injected datadog agent sidecar container, we observe repeated connection and initialization errors",
+    "count": 2
+  },
+  {
+    "phrase": "don't hesitate to re-open the ticket and share all the relevant information, if it's not helping your current issue",
+    "count": 2
+  },
+  {
+    "phrase": "based on the flare analysis, the issue is likely caused by the remote tagger enabled by default in agent 7",
+    "count": 2
+  },
+  {
+    "phrase": "since the root cause has been identified and a workaround has been shared, i go ahead and close this case",
+    "count": 2
+  },
+  {
+    "phrase": "datadog has been deployed using the helm charts with configuration provided through our values-fargate",
+    "count": 2
+  },
+  {
+    "phrase": "i only need the one assigned to me, also can it be trigerreg automatically by one of your subagent?",
+    "count": 2
+  },
+  {
+    "phrase": "i only need the one assigned to me, also can it be trigerreg automatically by one of your subagent",
+    "count": 2
+  },
+  {
+    "phrase": "specifically, we are unable to properly see pods and their states in datadog kubernetes monitoring",
+    "count": 2
+  },
+  {
+    "phrase": "hello, we are trying to configure a system to send logs from a kafka queue via otlp to datadog",
+    "count": 2
+  },
+  {
+    "phrase": "also, when i put in the clusteragent image tag override as you mentioned, nothing happened",
+    "count": 2
+  },
+  {
+    "phrase": "at the moment, this behavior prevents reliable monitoring of workloads running on fargate",
+    "count": 2
+  },
+  {
+    "phrase": "you are trying to configure a system to send logs from a kafka queue via otlp to datadog",
+    "count": 2
+  },
+  {
+    "phrase": "let me know once you've verified the secret setup and i'll be happy to assist further",
+    "count": 2
+  },
+  {
+    "phrase": "there are no errors in the sending queues, but nothing appears in the log explorer",
+    "count": 2
+  },
+  {
+    "phrase": "we have tried numerous configurations, but it seems that datadog rejects the logs",
+    "count": 2
+  },
+  {
+    "phrase": "service 'datadog security agent' datadog-security-agent could not be installed",
+    "count": 2
+  },
+  {
+    "phrase": "i mean, does your subagent can achieve background running for some skills ?",
+    "count": 2
+  },
+  {
+    "phrase": "these logs are included in the attachment logs-from-datadog-agent-injected-",
+    "count": 2
+  },
+  {
+    "phrase": "i mean, does your subagent can achieve background running for some skills",
+    "count": 2
+  },
+  {
+    "phrase": "however, we are experiencing issues with kubernetes monitoring visibility",
+    "count": 2
+  },
+  {
+    "phrase": "kubectl get configmap otel-collector-conf-auditoria -n monitoring -o yaml",
+    "count": 2
+  },
+  {
+    "phrase": "service 'datadog trace agent' datadog-trace-agent could not be installed",
+    "count": 2
+  },
+  {
+    "phrase": "hum i need to think about that, can you test the zendesk skill now",
+    "count": 2
+  },
+  {
+    "phrase": "i manually had to change the cluster agent deployment to use the 7",
+    "count": 2
+  },
+  {
+    "phrase": "msi s 30:90 11:13:32:778: product: datadog agent -- error 1923",
+    "count": 2
+  },
+  {
+    "phrase": "don't hesitate to share all the ran commands, so i can verify",
+    "count": 2
+  },
+  {
+    "phrase": "service 'datadog agent' datadogagent could not be installed",
+    "count": 2
+  },
+  {
+    "phrase": "but i need to create a skill to achieve that, possible ?",
+    "count": 2
+  },
+  {
+    "phrase": "kubectl logs -n monitoring -l appopentelemetry --tail200",
+    "count": 2
+  },
+  {
+    "phrase": "but i need to create a skill to achieve that, possible",
+    "count": 2
+  },
+  {
+    "phrase": "based on the chat, here what i was able to understand:",
+    "count": 2
+  },
+  {
+    "phrase": "kubectl describe pod -n monitoring -l appopentelemetry",
+    "count": 2
+  },
+  {
+    "phrase": "the correct documentation to follow is https:docs",
+    "count": 2
+  },
+  {
+    "phrase": "2which documentation you have followed so far",
+    "count": 2
+  },
+  {
+    "phrase": "please add the default manifest for operator",
+    "count": 2
+  },
+  {
+    "phrase": "thanks for your time during this chat,",
+    "count": 2
+  },
+  {
+    "phrase": "can the auto trigger run evey x time?",
+    "count": 2
+  },
+  {
+    "phrase": "thank you in advance for your support",
+    "count": 2
+  },
+  {
+    "phrase": "in minikube to answer this questions:",
+    "count": 2
+  }
+]

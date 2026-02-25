@@ -1,5 +1,5 @@
 ---
-name: ticket-investigator
+name: zendesk-ticket-investigator
 description: Investigate a Zendesk ticket by reading its content, searching for similar past tickets, checking internal docs, and gathering customer context. Use when the user mentions investigate ticket, look into ticket, ticket investigation, analyze ticket, or provides a Zendesk ticket number to investigate.
 ---
 
@@ -7,7 +7,7 @@ description: Investigate a Zendesk ticket by reading its content, searching for 
 
 Deep investigation skill for a specific Zendesk ticket. Reads the ticket, searches for similar past cases, checks internal documentation, gathers customer context, and writes a structured investigation report.
 
-Can be used standalone or called by the `ticket-watcher` skill when new tickets are detected.
+Can be used standalone or called by the `zendesk-ticket-watcher` skill when new tickets are detected.
 
 ## How to Use
 
@@ -27,7 +27,7 @@ If an agent receives a message matching any of these patterns:
 - "look into ticket XYZ"
 - "analyze ZD-XYZ"
 - "what's ticket #XYZ about?"
-- Called as a subagent by `ticket-watcher`
+- Called as a subagent by `zendesk-ticket-watcher`
 
 Then:
 1. Extract the ticket ID from the message

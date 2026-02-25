@@ -1,5 +1,5 @@
 ---
-name: ticket-watcher
+name: zendesk-ticket-watcher
 description: Background ticket watcher that monitors Zendesk for new assignments, investigates them with parallel subagents, and sends macOS notifications. Use when the user mentions ticket watcher, background investigation, auto-investigate, or ticket monitoring.
 ---
 
@@ -28,7 +28,7 @@ To stop: just type "stop" in the watcher chat, or close it.
 ## When This Skill is Activated
 
 If an agent receives a message like "start the ticket watcher", "watch my tickets", or "ticket monitoring":
-1. Read `watcher-prompt.md` from this skill folder (`~/.cursor/skills/ticket-watcher/watcher-prompt.md`)
+1. Read `watcher-prompt.md` from this skill folder (`~/.cursor/skills/zendesk-ticket-watcher/watcher-prompt.md`)
 2. Follow every step in that file exactly
 3. Loop forever until the user says stop
 
@@ -39,7 +39,7 @@ If an agent receives a message like "start the ticket watcher", "watch my ticket
 | `SKILL.md` | This file — skill definition |
 | `watcher-prompt.md` | The looping prompt for the dedicated watcher chat |
 
-For ticket investigation, this skill uses the standalone `ticket-investigator` skill (`~/.cursor/skills/ticket-investigator/`).
+For ticket investigation, this skill uses the standalone `zendesk-ticket-investigator` skill (`~/.cursor/skills/zendesk-ticket-investigator/`).
 
 ## Output (in workspace `investigations/`)
 
@@ -61,7 +61,7 @@ Every 5 minutes:
 5. Sleep 5 minutes → repeat
 
 ### Investigation Mode (when new tickets found)
-When new tickets are detected, the watcher launches **parallel subagents** (up to 4 at a time) using the `ticket-investigator` skill. Each subagent reads the ticket, searches for similar cases, checks docs, and writes a report to `investigations/ZD-{id}.md`.
+When new tickets are detected, the watcher launches **parallel subagents** (up to 4 at a time) using the `zendesk-ticket-investigator` skill. Each subagent reads the ticket, searches for similar cases, checks docs, and writes a report to `investigations/ZD-{id}.md`.
 
 ### Manual Trigger
 If the user asks to check tickets in an existing chat, follow the same steps from `watcher-prompt.md` but without the loop (single pass).
@@ -71,4 +71,4 @@ If the user asks to check tickets in an existing chat, follow the same steps fro
 If the agent in a regular chat reads this skill, it should:
 1. **If asked to "start the watcher"** → Tell the user to open a new chat and type "start the ticket watcher"
 2. **If asked to "check for new tickets" (one-time)** → Run steps 1-4 from `watcher-prompt.md` without looping
-3. **If asked to "investigate ticket #XYZ"** → Use the `ticket-investigator` skill instead
+3. **If asked to "investigate ticket #XYZ"** → Use the `zendesk-ticket-investigator` skill instead
