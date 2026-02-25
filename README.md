@@ -36,7 +36,7 @@ Cursor automatically discovers skills from `~/.cursor/skills/*/SKILL.md`.
 
 - **Cursor IDE** with Agent mode enabled
 - **macOS** (skills use AppleScript and macOS-specific paths)
-- **Glean MCP** configured in Cursor (for `ticket-watcher`, `zendesk-ticket-pool`, `zendesk-ticket-routing`)
+- **Glean MCP** configured in Cursor (for all `zendesk-*` skills)
 - **espanso** (`brew install espanso`) for `text-shortcut-manager`
 - **Snagit 2024** for `snagit-screen-record`
 
@@ -49,17 +49,35 @@ Skills are markdown instruction files that the AI agent reads when it determines
 3. **Output formatting** - Consistent, actionable presentation
 4. **Domain knowledge** - TSE-specific context the AI wouldn't know
 
-## Ticket Watcher Architecture
+## Zendesk Ticket Pipeline
 
-The `zendesk-ticket-watcher` skill uses a unique approach — no cron, no extensions, no external schedulers:
+The Zendesk skills work together as a full ticket pipeline:
 
 ```
-Dedicated Agent Chat (looping) → Glean MCP → detect new tickets
-                                           → macOS notification
-                                           → parallel subagents → investigation reports
+New ticket arrives
+     │
+     ▼
+zendesk-ticket-watcher ──── detects new ticket ──── macOS notification
+     │
+     ├──▶ zendesk-ticket-classifier ──── WHAT type? (bug / question / incident / ...)
+     │
+     ├──▶ zendesk-ticket-investigator ── deep dive (docs, GitHub, similar cases, customer)
+     │
+     └──▶ zendesk-ticket-routing ─────── WHERE to send? (spec / team / Slack channel)
+     │
+     ▼
+investigations/ZD-{id}.md ── full report with classification, context & routing
 ```
 
-Just open a new chat, type "start the ticket watcher", and the agent loops autonomously every 5 minutes, checking for new tickets and investigating them with parallel subagents.
+| Skill | Answers | Standalone? |
+|-------|---------|-------------|
+| `zendesk-ticket-watcher` | "Is there a new ticket?" | Yes — loops in dedicated chat |
+| `zendesk-ticket-classifier` | "What kind of ticket is it?" | Yes — "classify ticket #XYZ" |
+| `zendesk-ticket-investigator` | "What's the context & similar cases?" | Yes — "investigate ticket #XYZ" |
+| `zendesk-ticket-routing` | "Who handles it?" | Yes — "which spec for ticket #XYZ" |
+| `zendesk-ticket-pool` | "What's on my plate right now?" | Yes — "check my tickets" |
+
+Each skill works **standalone** or as part of the pipeline. No cron, no extensions — just agents following instructions.
 
 ## Syncing Local <-> GitHub
 
