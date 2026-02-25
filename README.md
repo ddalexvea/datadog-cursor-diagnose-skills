@@ -14,12 +14,6 @@ Skills live **both locally** (`~/.cursor/skills/`) and in this GitHub repo for v
 zendesk-ticket-pool/
 └── SKILL.md                        # Zendesk ticket pool checker via Glean MCP
 
-voice-to-text/
-├── SKILL.md                        # macOS Dictation setup for voice input in Cursor
-└── scripts/
-    ├── setup.sh                    # Verify Dictation prerequisites
-    └── dictate.sh                  # Trigger Dictation via AppleScript
-
 snagit-screen-record/
 ├── SKILL.md                        # Snagit video capture from Cursor
 └── scripts/
@@ -38,7 +32,6 @@ text-shortcut-manager/
 | Skill | Description | Trigger | Prerequisites |
 |-------|-------------|---------|---------------|
 | `zendesk-ticket-pool` | Check assigned Zendesk tickets (open/pending) with priority, follow-up detection, stale ticket alerts | "check my tickets", "ticket pool" | Glean MCP |
-| `voice-to-text` | Enable macOS native Dictation for voice input in Cursor chat | "setup voice", "dictation" | macOS, Fn key configured |
 | `snagit-screen-record` | Start Snagit video capture via text or voice command | "start recording", "record screen" | Snagit 2024, Accessibility permissions |
 | `text-shortcut-manager` | Scan Cursor transcripts for recurring phrases, create espanso text shortcuts automatically | "scan my patterns", "add shortcut" | espanso (`brew install espanso`) |
 
