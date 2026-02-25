@@ -61,8 +61,8 @@ flowchart TD
     B -->|parallel| D[zendesk-ticket-investigator]
     B -->|parallel| E[zendesk-ticket-routing]
 
-    C -->|WHAT type?| C1[bug / question / incident\nfeature-request / config]
-    D -->|deep dive| D1[docs / GitHub / similar cases\ncustomer context]
+    C -->|WHAT type?| C1[bug / question / incident / feature-request / config]
+    D -->|deep dive| D1[docs / GitHub / similar cases / customer context]
     E -->|WHERE to send?| E1[spec / team / Slack channel]
 
     C1 --> F[investigations/ZD-id.md]
