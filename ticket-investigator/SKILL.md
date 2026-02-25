@@ -39,8 +39,45 @@ Then:
 1. **Read ticket** — Full content from Zendesk via Glean (`user-glean_ai-code-read_document`)
 2. **Similar tickets** — Search Zendesk for resolved tickets with matching symptoms
 3. **Internal docs** — Search Confluence for runbooks, troubleshooting guides, known issues
-4. **Customer context** — Search Salesforce for org tier, MRR, top75, recent escalations
-5. **Write report** — Structured markdown report to `investigations/ZD-{id}.md`
+4. **Public docs** — Search docs.datadoghq.com for relevant product documentation
+5. **GitHub code** — Search DataDog GitHub repos for config parameters, error messages, source code
+6. **Customer context** — Search Salesforce for org tier, MRR, top75, recent escalations
+7. **Write report** — Structured markdown report with links to all sources
+
+## Reference Sources
+
+### Public Documentation
+- https://docs.datadoghq.com — Main doc site (agent, logs, APM, infra, containers, etc.)
+
+### Key GitHub Repositories
+| Repo | What |
+|------|------|
+| [datadog-agent](https://github.com/DataDog/datadog-agent) | Core agent, config parameters, checks |
+| [integrations-core](https://github.com/DataDog/integrations-core) | Official integration checks |
+| [integrations-extras](https://github.com/DataDog/integrations-extras) | Community integrations |
+| [helm-charts](https://github.com/DataDog/helm-charts) | Kubernetes Helm charts |
+| [datadog-operator](https://github.com/DataDog/datadog-operator) | Kubernetes operator |
+| [documentation](https://github.com/DataDog/documentation) | Source for docs.datadoghq.com |
+
+### APM Tracers
+| Language | Repo |
+|----------|------|
+| Python | [dd-trace-py](https://github.com/DataDog/dd-trace-py) |
+| Java | [dd-trace-java](https://github.com/DataDog/dd-trace-java) |
+| Node.js | [dd-trace-js](https://github.com/DataDog/dd-trace-js) |
+| Go | [dd-trace-go](https://github.com/DataDog/dd-trace-go) |
+| .NET | [dd-trace-dotnet](https://github.com/DataDog/dd-trace-dotnet) |
+| Ruby | [dd-trace-rb](https://github.com/DataDog/dd-trace-rb) |
+
+### Agent Config Parameters
+Key files for parameter lookup in `datadog-agent`:
+- `pkg/config/setup/config.go` — All config parameters with defaults
+- `cmd/agent/dist/datadog.yaml` — Default config template
+- `comp/core/config/` — Config component
+
+### Internal Documentation
+- Confluence — Runbooks, troubleshooting guides, known issues
+- Salesforce — Customer tier, MRR, top75, escalation history
 
 ## Output
 
