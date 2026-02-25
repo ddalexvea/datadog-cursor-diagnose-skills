@@ -104,6 +104,18 @@ The investigation can be extended to spin up reproduction environments based on 
 
 The `investigate-prompt.md` has a placeholder section for this that can be activated per-topic.
 
+## Known Limitations
+
+### Attachments (flares, logs) cannot be downloaded via Glean MCP
+
+Glean MCP reads ticket text content but returns `attachment_data: []` — no download URLs for attached files (agent flares, log files, screenshots, etc.). The investigator can **detect** that a flare was attached (from text like "Logs attached from...") but **cannot download it**.
+
+**Impact:** This is a significant gap. Many TSE investigations depend on analyzing agent flare contents (config, logs, status output).
+
+**Current workaround:** The investigator notes that a flare is attached and asks the user to download it manually, then point the agent to the local file for analysis using the `datadog-cursor-diagnose-rules`.
+
+**Future fix:** Use a Zendesk API token to call `GET /api/v2/tickets/{id}/comments` directly, which returns attachment `content_url` fields that can be downloaded via `curl`. This would enable fully automated flare download and analysis.
+
 ## Files
 
 | File | Purpose |
