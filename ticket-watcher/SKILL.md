@@ -37,8 +37,9 @@ If an agent receives a message like "start the ticket watcher", "watch my ticket
 | File | Purpose |
 |------|---------|
 | `SKILL.md` | This file — skill definition |
-| `watcher-prompt.md` | The looping prompt to paste into a dedicated chat |
-| `investigate-prompt.md` | Subagent prompt template for deep ticket investigation |
+| `watcher-prompt.md` | The looping prompt for the dedicated watcher chat |
+
+For ticket investigation, this skill uses the standalone `ticket-investigator` skill (`~/.cursor/skills/ticket-investigator/`).
 
 ## Output (in workspace `investigations/`)
 
@@ -60,33 +61,14 @@ Every 5 minutes:
 5. Sleep 5 minutes → repeat
 
 ### Investigation Mode (when new tickets found)
-When new tickets are detected, the watcher can launch **parallel subagents** (up to 4 at a time) to investigate each ticket:
-1. Read ticket details from Zendesk via Glean
-2. Search for similar past tickets
-3. Search internal knowledge base / documentation
-4. Identify customer context (org, tier)
-5. Write structured report to `investigations/ZD-{id}.md`
+When new tickets are detected, the watcher launches **parallel subagents** (up to 4 at a time) using the `ticket-investigator` skill. Each subagent reads the ticket, searches for similar cases, checks docs, and writes a report to `investigations/ZD-{id}.md`.
 
 ### Manual Trigger
 If the user asks to check tickets in an existing chat, follow the same steps from `watcher-prompt.md` but without the loop (single pass).
 
-## Reproduction Environments (Future)
-
-The investigation subagent can be extended to spin up reproduction environments based on the ticket topic:
-
-| Topic | Environment | How |
-|-------|-------------|-----|
-| Kubernetes / containers | minikube sandbox | `minikube start` + apply manifests |
-| AWS integrations | LocalStack or real AWS | Docker localstack or `aws` CLI |
-| Azure integrations | Azure CLI sandbox | `az` CLI with test subscription |
-| Docker / containers | Local Docker | `docker-compose` with agent config |
-| Linux agent | Vagrant / Docker | Spin up a test VM or container |
-
-This is a **planned extension** — the `investigate-prompt.md` has a placeholder section for reproduction steps that can be activated per-topic.
-
 ## When Used from Another Chat
 
 If the agent in a regular chat reads this skill, it should:
-1. **If asked to "start the watcher"** → Tell the user to open a new chat and paste `watcher-prompt.md`
+1. **If asked to "start the watcher"** → Tell the user to open a new chat and type "start the ticket watcher"
 2. **If asked to "check for new tickets" (one-time)** → Run steps 1-4 from `watcher-prompt.md` without looping
-3. **If asked to "investigate ticket #XYZ"** → Use `investigate-prompt.md` as a template
+3. **If asked to "investigate ticket #XYZ"** → Use the `ticket-investigator` skill instead
