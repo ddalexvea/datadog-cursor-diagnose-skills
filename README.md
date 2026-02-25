@@ -53,20 +53,32 @@ Skills are markdown instruction files that the AI agent reads when it determines
 
 The Zendesk skills work together as a full ticket pipeline:
 
-```
-New ticket arrives
-     │
-     ▼
-zendesk-ticket-watcher ──── detects new ticket ──── macOS notification
-     │
-     ├──▶ zendesk-ticket-classifier ──── WHAT type? (bug / question / incident / ...)
-     │
-     ├──▶ zendesk-ticket-investigator ── deep dive (docs, GitHub, similar cases, customer)
-     │
-     └──▶ zendesk-ticket-routing ─────── WHERE to send? (spec / team / Slack channel)
-     │
-     ▼
-investigations/ZD-{id}.md ── full report with classification, context & routing
+```mermaid
+flowchart TD
+    A[New Zendesk Ticket] --> B[zendesk-ticket-watcher]
+    B -->|detects| N[macOS Notification]
+    B -->|parallel| C[zendesk-ticket-classifier]
+    B -->|parallel| D[zendesk-ticket-investigator]
+    B -->|parallel| E[zendesk-ticket-routing]
+
+    C -->|WHAT type?| C1[bug / question / incident\nfeature-request / config]
+    D -->|deep dive| D1[docs / GitHub / similar cases\ncustomer context]
+    E -->|WHERE to send?| E1[spec / team / Slack channel]
+
+    C1 --> F[investigations/ZD-id.md]
+    D1 --> F
+    E1 --> F
+
+    G[zendesk-ticket-pool] -.->|standalone| H[What's on my plate?]
+
+    style A fill:#ff6b6b,color:#fff
+    style B fill:#4ecdc4,color:#fff
+    style C fill:#45b7d1,color:#fff
+    style D fill:#45b7d1,color:#fff
+    style E fill:#45b7d1,color:#fff
+    style G fill:#96ceb4,color:#fff
+    style F fill:#ffd93d,color:#333
+    style N fill:#ff8a5c,color:#fff
 ```
 
 | Skill | Answers | Standalone? |
