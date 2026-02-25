@@ -8,25 +8,6 @@ This repository contains reusable Agent Skills that teach Cursor's AI assistant 
 
 Skills live **both locally** (`~/.cursor/skills/`) and in this GitHub repo for versioning and sharing.
 
-## Structure
-
-```
-zendesk-ticket-pool/
-└── SKILL.md                        # Zendesk ticket pool checker via Glean MCP
-
-snagit-screen-record/
-├── SKILL.md                        # Snagit video capture from Cursor
-└── scripts/
-    ├── setup.sh                    # Verify Snagit prerequisites
-    └── record.sh                   # Trigger Snagit capture via AppleScript
-
-text-shortcut-manager/
-├── SKILL.md                        # Detect recurring phrases + manage espanso shortcuts
-└── scripts/
-    ├── scan.py                     # Scan transcripts for repeated phrases
-    └── manage.py                   # Add/list/remove espanso shortcuts
-```
-
 ## Available Skills
 
 | Skill | Description | Trigger | Prerequisites |
