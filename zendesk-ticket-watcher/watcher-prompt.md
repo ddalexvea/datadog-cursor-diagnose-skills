@@ -35,10 +35,29 @@ osascript -e 'display notification "Ticket #TICKET_ID - SUBJECT" with title "�
 ```
 3. Append a row to `investigations/_alert.md` (create table header if file is empty)
 
-Then launch **parallel subagents** (one per new ticket, max 4) to investigate:
-- Each subagent should: read the ticket via Glean (`user-glean_ai-code-read_document` with URL `https://datadog.zendesk.com/agent/tickets/TICKET_ID`), search for similar past tickets, and write a brief report to `investigations/ZD-TICKET_ID.md`
-- Use the Task tool with subagent_type "generalPurpose" and model "fast"
-- In the subagent prompt, include: ticket ID, ticket subject, and instruct it to read the ticket, find similar cases, and write a report
+Then investigate all new tickets **inline** (do NOT use subagents/Task tool — they require manual "Allow" clicks).
+
+**IMPORTANT: Batch tool calls across all tickets in parallel to maximize speed.**
+
+**Round 1 — Read all tickets at once:**
+Make ONE tool call batch with `user-glean_ai-code-read_document` for ALL new tickets simultaneously:
+- urls: ["https://datadog.zendesk.com/agent/tickets/TICKET_A", "https://datadog.zendesk.com/agent/tickets/TICKET_B", "https://datadog.zendesk.com/agent/tickets/TICKET_C"]
+
+Extract from each: customer name, org, priority, problem description, error messages, product area.
+
+**Round 2 — Search everything in parallel (one batch):**
+In a SINGLE message, fire ALL these searches for ALL tickets at once:
+- For each ticket: `user-glean_ai-code-search` (app: zendesk) — similar past tickets
+- For each ticket: `user-glean_ai-code-search` (app: confluence) — internal docs
+- For each ticket: `user-glean_ai-code-search` (app: "glean help docs") — public docs
+- For each ticket: `user-glean_ai-code-search` (app: github) — code/config
+
+Example: 3 new tickets = 12 parallel search calls in one message.
+
+**Round 3 — Write all reports:**
+Write all `investigations/ZD-TICKET_ID.md` files following the template in `zendesk-ticket-investigator/investigate-prompt.md`.
+
+This way, 3 tickets take roughly the same time as 1 ticket (3 rounds of parallel calls instead of 3x sequential).
 
 ### Step 5: If NO new tickets
 Write `No new tickets - CURRENT_DATETIME` to `investigations/_last_run.log`

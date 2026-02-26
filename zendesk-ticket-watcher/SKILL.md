@@ -1,18 +1,18 @@
 ---
 name: zendesk-ticket-watcher
-description: Background ticket watcher that monitors Zendesk for new assignments, investigates them with parallel subagents, and sends macOS notifications. Use when the user mentions ticket watcher, background investigation, auto-investigate, or ticket monitoring.
+description: Background ticket watcher that monitors Zendesk for new assignments, investigates them inline, and sends macOS notifications. Use when the user mentions ticket watcher, background investigation, auto-investigate, or ticket monitoring.
 ---
 
 # Ticket Watcher
 
-Autonomous background watcher that runs in a dedicated Cursor chat, checking Zendesk for new ticket assignments via Glean MCP. When new tickets are found, it sends macOS notifications and can launch parallel subagents to investigate each ticket.
+Autonomous background watcher that runs in a dedicated Cursor chat, checking Zendesk for new ticket assignments via Glean MCP. When new tickets are found, it sends macOS notifications and investigates each ticket inline (no subagents, no approval clicks needed).
 
 ## Architecture
 
 ```
 Dedicated Agent Chat (looping) → Glean MCP → detect new tickets
                                            → macOS notification
-                                           → parallel subagents → investigation reports
+                                           → inline investigation → reports
 ```
 
 No cron, no launchd, no extensions. Just an agent following instructions in its own chat.
@@ -61,7 +61,7 @@ Every 5 minutes:
 5. Sleep 5 minutes → repeat
 
 ### Investigation Mode (when new tickets found)
-When new tickets are detected, the watcher launches **parallel subagents** (up to 4 at a time) using the `zendesk-ticket-investigator` skill. Each subagent reads the ticket, searches for similar cases, checks docs, and writes a report to `investigations/ZD-{id}.md`.
+When new tickets are detected, the watcher investigates each ticket **inline** (no subagents — they require manual "Allow" clicks which defeats background automation). For each ticket, it reads the content via Glean, searches for similar cases, checks docs/GitHub, and writes a report to `investigations/ZD-{id}.md`.
 
 ### Manual Trigger
 If the user asks to check tickets in an existing chat, follow the same steps from `watcher-prompt.md` but without the loop (single pass).
