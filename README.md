@@ -12,7 +12,7 @@ Skills live **both locally** (`~/.cursor/skills/`) and in this GitHub repo for v
 
 | Skill | Description | Trigger | Prerequisites |
 |-------|-------------|---------|---------------|
-| `zendesk-ticket-watcher` | **Autonomous background watcher** — loops in a dedicated chat, detects new Zendesk tickets via Glean, sends macOS notifications, launches `zendesk-ticket-investigator` subagents | "start the ticket watcher", "watch my tickets" | Glean MCP |
+| `zendesk-ticket-watcher` | **Autonomous background watcher** — loops in a dedicated chat, detects new Zendesk tickets via Glean, sends macOS notifications, investigates inline with batched parallel calls | "start the ticket watcher", "watch my tickets" | Glean MCP |
 | `zendesk-ticket-investigator` | Deep investigation of a specific ticket — reads content, searches similar cases, checks docs & GitHub code, gathers customer context, writes report | "investigate ticket #XYZ", "look into ZD-XYZ" | Glean MCP |
 | `zendesk-ticket-pool` | Check assigned Zendesk tickets (open/pending) with priority, follow-up detection, stale ticket alerts | "check my tickets", "ticket pool" | Glean MCP |
 | `zendesk-ticket-classifier` | Classify ticket nature (bug, question, feature request, incident) with confirmation checks | "classify ticket #XYZ", "what type of ticket" | Glean MCP |
@@ -57,9 +57,9 @@ The Zendesk skills work together as a full ticket pipeline:
 flowchart TD
     A[New Zendesk Ticket] --> B[zendesk-ticket-watcher]
     B -->|detects| N[macOS Notification]
-    B -->|parallel| C[zendesk-ticket-classifier]
-    B -->|parallel| D[zendesk-ticket-investigator]
-    B -->|parallel| E[zendesk-ticket-routing]
+    B -->|inline| C[zendesk-ticket-classifier]
+    B -->|inline| D[zendesk-ticket-investigator]
+    B -->|inline| E[zendesk-ticket-routing]
 
     C -->|WHAT type?| C1[bug / question / incident / feature-request / config]
     D -->|deep dive| D1[docs / GitHub / similar cases / customer context]
