@@ -19,6 +19,7 @@ Skills live **both locally** (`~/.cursor/skills/`) and in this GitHub repo for v
 | `zendesk-ticket-tldr` | Generate structured TLDR summaries for all active tickets where you have responded — includes issue, investigation, next steps, need from customer | "tldr my tickets", "standup notes", "ticket summaries" | Glean MCP |
 | `zendesk-ticket-routing` | Identify which TS specialization and engineering team owns a ticket topic | "which spec", "route ticket" | Glean MCP |
 | `zendesk-ticket-info-needed` | Estimate what customer info is still missing — reads ticket + Confluence troubleshooting guide, outputs gap analysis + copy-paste customer message | "what info do I need for #XYZ", "what to ask for ZD-XYZ" | Glean MCP |
+| `zendesk-ticket-repro-needed` | Evaluate whether a ticket needs hands-on reproduction — decision tree + suggested environment type (minikube, docker, cloud sandbox) | "should I reproduce #XYZ", "repro needed for ZD-XYZ" | Glean MCP |
 | `snagit-screen-record` | Start Snagit video capture via text or voice command | "start recording", "record screen" | Snagit 2024, Accessibility permissions |
 | `text-shortcut-manager` | Scan Cursor transcripts for recurring phrases, create espanso text shortcuts automatically | "scan my patterns", "add shortcut" | espanso (`brew install espanso`) |
 
@@ -79,6 +80,7 @@ flowchart TD
     T[zendesk-ticket-tldr] -.->|standalone| T1[TLDR summaries for all active tickets]
     T1 --> T2[investigations/TLDR-all.md]
     I[zendesk-ticket-info-needed] -.->|standalone| I1[What info is missing?]
+    J[zendesk-ticket-repro-needed] -.->|standalone or after investigator| J1[Should I reproduce this?]
 
     style A fill:#4ecdc4,color:#fff
     style B fill:#4ecdc4,color:#fff
@@ -97,6 +99,8 @@ flowchart TD
     style T2 fill:#ffd93d,color:#333
     style I fill:#e8a87c,color:#fff
     style I1 fill:#e8a87c,color:#fff
+    style J fill:#d4a5a5,color:#fff
+    style J1 fill:#d4a5a5,color:#fff
 ```
 
 | Skill | Answers | Standalone? |
@@ -108,6 +112,7 @@ flowchart TD
 | `zendesk-ticket-tldr` | "What's the full status of my tickets?" | Yes — "tldr my tickets" |
 | `zendesk-ticket-pool` | "What's on my plate right now?" | Yes — "check my tickets" |
 | `zendesk-ticket-info-needed` | "What info is missing from the customer?" | Yes — "what info do I need for #XYZ" |
+| `zendesk-ticket-repro-needed` | "Should I spin up an environment to test this?" | Yes — "should I reproduce #XYZ" |
 
 Each skill works **standalone** or as part of the pipeline. No cron, no extensions — just agents following instructions.
 
