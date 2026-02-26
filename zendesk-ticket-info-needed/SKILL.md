@@ -1,0 +1,129 @@
+---
+name: zendesk-ticket-info-needed
+description: Estimate what customer info is still needed to resolve a Zendesk ticket. Reads all ticket comments, identifies the product area, fetches relevant troubleshooting guides from Confluence, and produces an internal analysis plus a customer-ready message. Use when the user mentions info needed, what to ask, missing info, customer info, estimate info, what do I need from the customer, or provides a ticket to triage.
+---
+
+# Estimate Needed Customer Info
+
+Analyzes a Zendesk ticket to determine what diagnostic information is still missing from the customer, based on the product area's troubleshooting guide in Confluence.
+
+**Different from other ticket skills:**
+- **Investigator** = deep research (similar tickets, docs, code, customer context)
+- **Classifier** = WHAT type of ticket (bug, question, incident)
+- **Router** = WHERE to send it (which spec, team, channel)
+- **Info Needed** (this skill) = WHAT to ask the customer next
+
+## How to Use
+
+Just say: **"what info do I need for ticket #2513411"** or **"what to ask for ZD-2513411"**
+
+## When This Skill is Activated
+
+Triggers on:
+- "what info do I need for #XYZ"
+- "what to ask for ZD-XYZ"
+- "missing info for ticket #XYZ"
+- "estimate info needed for #XYZ"
+- "what should I ask the customer for #XYZ"
+- Called by `zendesk-ticket-investigator` as a follow-up step
+
+Then:
+1. Extract the ticket ID
+2. Follow the steps in `info-needed-prompt.md`
+3. Return internal analysis + customer-ready message
+
+## Skill Logic
+
+### Phase 1: Read the full ticket conversation
+- Read ALL comments (not just the first message) via Glean
+- Build a timeline of what happened, what was already asked, what was already provided
+
+### Phase 2: Identify the product area
+- Detect the product area from ticket content (agent, APM, logs, DBM, containers, cloud integrations, etc.)
+- Detect the specific integration or feature if applicable
+
+### Phase 3: Fetch troubleshooting guide from Confluence
+- Search Confluence via Glean for the product area's troubleshooting guide
+- Extract the diagnostic steps, required info, and commands from the guide
+- This is the PRIMARY source of truth for what to ask
+
+### Phase 4: Cross-reference provided vs needed
+- Compare what the troubleshooting guide requires against what the customer already provided
+- Mark each item as: provided, partially provided, or missing
+
+### Phase 5: Generate output
+- Internal analysis: what's missing, why, priority
+- Customer-ready message: polite request with public doc links and exact commands
+
+## Output Format
+
+```markdown
+## Info Needed: ZD-{TICKET_ID}
+
+### Product Area
+- **Spec:** {spec_name}
+- **Feature/Integration:** {specific_feature}
+- **Troubleshooting Guide:** [{guide_title}]({confluence_url})
+
+### Already Provided
+- [x] {item} — found in comment #{N} on {date}
+- [x] {item} — attached as {filename}
+
+### Still Needed (Priority Order)
+
+#### 🔴 Critical (can't proceed without)
+| # | What | Why | Command/Steps |
+|---|------|-----|---------------|
+| 1 | {item} | {reason} | `{command}` |
+
+#### 🟡 Helpful (speeds up resolution)
+| # | What | Why | Command/Steps |
+|---|------|-----|---------------|
+| 1 | {item} | {reason} | `{command}` |
+
+#### 🟢 Nice to have
+| # | What | Why |
+|---|------|-----|
+| 1 | {item} | {reason} |
+
+---
+
+### 📋 Customer Message (copy-paste ready)
+
+{polite customer message with:
+- numbered list of what's needed
+- exact commands to run (with OS-appropriate variants)
+- links to relevant public docs
+- clear explanation of WHY each item helps}
+```
+
+## Common Info Patterns (by product area)
+
+These are starting points -- the skill ALWAYS fetches the live Confluence guide for the definitive checklist.
+
+| Product Area | Typical First Ask |
+|-------------|-------------------|
+| Agent (integration issue) | Flare (`agent flare`) + manual check (`agent check <NAME> --log-level debug`) |
+| Agent (install/startup) | Flare + OS details + install method |
+| Containers (K8s) | Flare + Helm values / DaemonSet manifest + `kubectl describe pod` |
+| Cloud Integrations | Doc steps followed + AWS/GCP/Azure console screenshots + IAM policy |
+| DBM | Flare + DB version + DB user grants + `SHOW VARIABLES` / `pg_stat_statements` |
+| APM | Flare + tracer version + startup logs + sample trace ID |
+| Logs | Flare + pipeline config + sample log line + index/filter config |
+| NPM / NDM | Flare + network topology + SNMP profile |
+| Monitors | Monitor JSON export + evaluation graph screenshot |
+| Synthetics | Test ID + results page link + HAR file |
+| RUM | SDK version + init config + network tab screenshot |
+
+## Integration with Other Skills
+
+- **After `zendesk-ticket-investigator`**: automatically suggests what info to request based on the investigation findings
+- **Feeds `zendesk-ticket-difficulty`** (future): missing info count impacts difficulty estimate
+- **Feeds `zendesk-ticket-time-estimate`** (future): more missing info = more back-and-forths = longer resolution
+
+## Files
+
+| File | Purpose |
+|------|---------|
+| `SKILL.md` | This file — skill definition |
+| `info-needed-prompt.md` | Step-by-step prompt for the agent to follow |
