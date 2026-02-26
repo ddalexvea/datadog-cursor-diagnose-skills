@@ -55,30 +55,39 @@ The Zendesk skills work together as a full ticket pipeline:
 
 ```mermaid
 flowchart TD
-    A[New Zendesk Ticket] --> B[zendesk-ticket-watcher]
-    B -->|detects| N[macOS Notification]
-    B -->|inline| C[zendesk-ticket-classifier]
-    B -->|inline| D[zendesk-ticket-investigator]
-    B -->|inline| E[zendesk-ticket-routing]
+    A[Glean MCP: search open + pending tickets] --> B[zendesk-ticket-watcher]
+    B -->|compare with _processed.log| C{New tickets?}
+    C -->|No| S[Sleep 5 min → loop]
+    C -->|Yes: 1 or more| N[macOS Notification per ticket]
+    N --> R1
 
-    C -->|WHAT type?| C1[bug / question / incident / feature-request / config]
-    D -->|deep dive| D1[docs / GitHub / similar cases / customer context]
-    E -->|WHERE to send?| E1[spec / team / Slack channel]
+    subgraph Batched Inline Investigation
+        R1[Round 1: Read ALL tickets in parallel] --> R2[Round 2: Search ALL in parallel]
+        R2 --> R3[Round 3: Write ALL reports]
+    end
 
-    C1 --> F[investigations/ZD-id.md]
-    D1 --> F
-    E1 --> F
+    R2 -->|per ticket x4| R2D[zendesk + confluence + docs + github]
+    R3 --> F1[investigations/ZD-A.md]
+    R3 --> F2[investigations/ZD-B.md]
+    R3 --> F3[investigations/ZD-C.md]
+
+    S --> A
 
     G[zendesk-ticket-pool] -.->|standalone| H[What's on my plate?]
 
-    style A fill:#ff6b6b,color:#fff
+    style A fill:#4ecdc4,color:#fff
     style B fill:#4ecdc4,color:#fff
-    style C fill:#45b7d1,color:#fff
-    style D fill:#45b7d1,color:#fff
-    style E fill:#45b7d1,color:#fff
-    style G fill:#96ceb4,color:#fff
-    style F fill:#ffd93d,color:#333
+    style C fill:#ff8a5c,color:#fff
     style N fill:#ff8a5c,color:#fff
+    style R1 fill:#45b7d1,color:#fff
+    style R2 fill:#45b7d1,color:#fff
+    style R3 fill:#45b7d1,color:#fff
+    style R2D fill:#45b7d1,color:#fff
+    style F1 fill:#ffd93d,color:#333
+    style F2 fill:#ffd93d,color:#333
+    style F3 fill:#ffd93d,color:#333
+    style S fill:#96ceb4,color:#fff
+    style G fill:#96ceb4,color:#fff
 ```
 
 | Skill | Answers | Standalone? |
