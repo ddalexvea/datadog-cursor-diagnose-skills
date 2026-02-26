@@ -57,44 +57,34 @@ Then:
 
 ## Output Format
 
+Concise gap analysis — NOT a full investigation. No conversation summaries, no source citations, no estimated back-and-forths.
+
 ```markdown
 ## Info Needed: ZD-{TICKET_ID}
 
-### Product Area
-- **Spec:** {spec_name}
-- **Feature/Integration:** {specific_feature}
-- **Troubleshooting Guide:** [{guide_title}]({confluence_url})
+**Product:** {spec} — {feature/integration}
+**OS:** {detected OS or "unknown"}
+**Status:** {pending/open} — {waiting on customer / waiting on us}
 
 ### Already Provided
-- [x] {item} — found in comment #{N} on {date}
-- [x] {item} — attached as {filename}
+- [x] {item}
 
-### Still Needed (Priority Order)
+### Already Asked (waiting on customer)
+- [ ] {item}
 
-#### 🔴 Critical (can't proceed without)
-| # | What | Why | Command/Steps |
-|---|------|-----|---------------|
-| 1 | {item} | {reason} | `{command}` |
+### Still Missing
 
-#### 🟡 Helpful (speeds up resolution)
-| # | What | Why | Command/Steps |
-|---|------|-----|---------------|
-| 1 | {item} | {reason} | `{command}` |
+🔴 **Critical**
+1. {what} — {why, one sentence}
 
-#### 🟢 Nice to have
-| # | What | Why |
-|---|------|-----|
-| 1 | {item} | {reason} |
+🟡 **Helpful**
+1. {what} — {why, one sentence}
 
 ---
 
-### 📋 Customer Message (copy-paste ready)
+### 📋 Customer Message
 
-{polite customer message with:
-- numbered list of what's needed
-- exact commands to run (with OS-appropriate variants)
-- links to relevant public docs
-- clear explanation of WHY each item helps}
+{copy-paste ready message with numbered items, OS-appropriate commands, and public doc links}
 ```
 
 ## Common Info Patterns (by product area)
