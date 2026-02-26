@@ -12,7 +12,7 @@ engineering team, relevant Slack channels, and CODEOWNERS paths.
 
 **If given a Zendesk ticket URL or ID:**
 ```
-Tool: user-glean_default-read_document
+Tool: user-glean_ai-code-read_document
 urls: ["https://datadog.zendesk.com/agent/tickets/{TICKET_ID}"]
 ```
 
@@ -26,7 +26,7 @@ and any technical keywords (product names, integrations, features mentioned).
 Always fetch the authoritative source — never rely on cached or static data:
 
 ```
-Tool: user-glean_default-read_document
+Tool: user-glean_ai-code-read_document
 urls: ["https://datadoghq.atlassian.net/wiki/spaces/TS/pages/2296021921"]
 ```
 

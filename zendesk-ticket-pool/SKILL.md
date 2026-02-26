@@ -13,7 +13,7 @@ Run **two parallel** Glean searches to get all active tickets assigned to the us
 
 **Search 1 - Open tickets:**
 ```
-Tool: user-glean_default-search
+Tool: user-glean_ai-code-search
 query: *
 app: zendesk
 dynamic_search_result_filters: assignee:Alexandre VEA|status:open
@@ -22,7 +22,7 @@ exhaustive: true
 
 **Search 2 - Pending tickets:**
 ```
-Tool: user-glean_default-search
+Tool: user-glean_ai-code-search
 query: *
 app: zendesk
 dynamic_search_result_filters: assignee:Alexandre VEA|status:pending
@@ -119,7 +119,7 @@ After the table, list:
 
 ### Deep Dive
 
-If asked about a specific ticket, use `user-glean_default-read_document` with the ticket URL.
+If asked about a specific ticket, use `user-glean_ai-code-read_document` with the ticket URL.
 
 ## Filtering
 
