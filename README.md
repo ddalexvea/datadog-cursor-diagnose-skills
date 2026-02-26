@@ -16,6 +16,7 @@ Skills live **both locally** (`~/.cursor/skills/`) and in this GitHub repo for v
 | `zendesk-ticket-investigator` | Deep investigation of a specific ticket — reads content, searches similar cases, checks docs & GitHub code, gathers customer context, writes report | "investigate ticket #XYZ", "look into ZD-XYZ" | Glean MCP |
 | `zendesk-ticket-pool` | Check assigned Zendesk tickets (open/pending) with priority, follow-up detection, stale ticket alerts | "check my tickets", "ticket pool" | Glean MCP |
 | `zendesk-ticket-classifier` | Classify ticket nature (bug, question, feature request, incident) with confirmation checks | "classify ticket #XYZ", "what type of ticket" | Glean MCP |
+| `zendesk-ticket-tldr` | Generate structured TLDR summaries for all active tickets where you have responded — includes issue, investigation, next steps, need from customer | "tldr my tickets", "standup notes", "ticket summaries" | Glean MCP |
 | `zendesk-ticket-routing` | Identify which TS specialization and engineering team owns a ticket topic | "which spec", "route ticket" | Glean MCP |
 | `snagit-screen-record` | Start Snagit video capture via text or voice command | "start recording", "record screen" | Snagit 2024, Accessibility permissions |
 | `text-shortcut-manager` | Scan Cursor transcripts for recurring phrases, create espanso text shortcuts automatically | "scan my patterns", "add shortcut" | espanso (`brew install espanso`) |
@@ -74,6 +75,8 @@ flowchart TD
     S --> A
 
     G[zendesk-ticket-pool] -.->|standalone| H[What's on my plate?]
+    T[zendesk-ticket-tldr] -.->|standalone| T1[TLDR summaries for all active tickets]
+    T1 --> T2[investigations/TLDR-all.md]
 
     style A fill:#4ecdc4,color:#fff
     style B fill:#4ecdc4,color:#fff
@@ -88,6 +91,8 @@ flowchart TD
     style F3 fill:#ffd93d,color:#333
     style S fill:#96ceb4,color:#fff
     style G fill:#96ceb4,color:#fff
+    style T fill:#b19cd9,color:#fff
+    style T2 fill:#ffd93d,color:#333
 ```
 
 | Skill | Answers | Standalone? |
@@ -96,6 +101,7 @@ flowchart TD
 | `zendesk-ticket-classifier` | "What kind of ticket is it?" | Yes — "classify ticket #XYZ" |
 | `zendesk-ticket-investigator` | "What's the context & similar cases?" | Yes — "investigate ticket #XYZ" |
 | `zendesk-ticket-routing` | "Who handles it?" | Yes — "which spec for ticket #XYZ" |
+| `zendesk-ticket-tldr` | "What's the full status of my tickets?" | Yes — "tldr my tickets" |
 | `zendesk-ticket-pool` | "What's on my plate right now?" | Yes — "check my tickets" |
 
 Each skill works **standalone** or as part of the pipeline. No cron, no extensions — just agents following instructions.
