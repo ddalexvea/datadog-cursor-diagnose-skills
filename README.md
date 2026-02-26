@@ -21,6 +21,7 @@ Skills live **both locally** (`~/.cursor/skills/`) and in this GitHub repo for v
 | `zendesk-ticket-info-needed` | Estimate what customer info is still missing — reads ticket + Confluence troubleshooting guide, outputs gap analysis + copy-paste customer message | "what info do I need for #XYZ", "what to ask for ZD-XYZ" | Glean MCP |
 | `zendesk-ticket-repro-needed` | Evaluate whether a ticket needs hands-on reproduction — decision tree + suggested environment type (minikube, docker, cloud sandbox) | "should I reproduce #XYZ", "repro needed for ZD-XYZ" | Glean MCP |
 | `zendesk-ticket-difficulty` | Score ticket difficulty 1-10 based on issue type, product count, environment complexity, reproduction need, and escalation likelihood | "difficulty for #XYZ", "how hard is #XYZ" | Glean MCP |
+| `zendesk-ticket-eta` | Estimate time of resolution — active work time, calendar time, time to next response, with blockers flagged and confidence level. Calibrated by similar resolved tickets | "ETA for #XYZ", "how long for ZD-XYZ" | Glean MCP |
 | `snagit-screen-record` | Start Snagit video capture via text or voice command | "start recording", "record screen" | Snagit 2024, Accessibility permissions |
 | `text-shortcut-manager` | Scan Cursor transcripts for recurring phrases, create espanso text shortcuts automatically | "scan my patterns", "add shortcut" | espanso (`brew install espanso`) |
 
@@ -83,6 +84,8 @@ flowchart TD
     I[zendesk-ticket-info-needed] -.->|standalone| I1[What info is missing?]
     J[zendesk-ticket-repro-needed] -.->|standalone or after investigator| J1[Should I reproduce this?]
     K[zendesk-ticket-difficulty] -.->|standalone or after pool| K1[How hard is this? 1-10]
+    L[zendesk-ticket-eta] -.->|standalone or after pool| L1[How long will this take?]
+    K1 -.->|feeds| L
 
     style A fill:#4ecdc4,color:#fff
     style B fill:#4ecdc4,color:#fff
@@ -105,6 +108,8 @@ flowchart TD
     style J1 fill:#d4a5a5,color:#fff
     style K fill:#c9b1ff,color:#fff
     style K1 fill:#c9b1ff,color:#fff
+    style L fill:#ff6b6b,color:#fff
+    style L1 fill:#ff6b6b,color:#fff
 ```
 
 | Skill | Answers | Standalone? |
@@ -118,6 +123,7 @@ flowchart TD
 | `zendesk-ticket-info-needed` | "What info is missing from the customer?" | Yes — "what info do I need for #XYZ" |
 | `zendesk-ticket-repro-needed` | "Should I spin up an environment to test this?" | Yes — "should I reproduce #XYZ" |
 | `zendesk-ticket-difficulty` | "How hard is this ticket? (1-10)" | Yes — "difficulty for #XYZ" |
+| `zendesk-ticket-eta` | "How long will this take?" | Yes — "ETA for #XYZ" |
 
 Each skill works **standalone** or as part of the pipeline. No cron, no extensions — just agents following instructions.
 
