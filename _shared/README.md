@@ -76,29 +76,43 @@ flowchart TD
 ## Token Optimization
 
 ```mermaid
-flowchart TD
-    subgraph Before["❌ Before — Raw Output"]
-        B_tags["Tags: 50+ raw tags<br>~400 tokens"]
-        B_comments["Comments: 3000 chars/each<br>~6,750 tokens"]
-        B_search["Search: all tags per ticket<br>~3,200 tokens"]
-        B_calls["2 tool calls per ticket<br>ticket() + comments()"]
+flowchart LR
+    subgraph Endpoints["Zendesk API Endpoints"]
+        E1["/api/v2/tickets/ID.json"]
+        E2["/api/v2/tickets/ID/comments.json"]
+        E3["/api/v2/search.json"]
     end
 
-    subgraph After["✅ After — Filtered Output"]
-        A_tags["13 filtered categories<br>~80 tokens"]
-        A_comments["500 chars/comment (tunable)<br>~1,125 tokens"]
-        A_search["Extracted metadata only<br>~600 tokens"]
-        A_calls["1 combined read call"]
+    subgraph Before["❌ Raw Output"]
+        B1["50+ tags — ~400 tk"]
+        B2["3000 chars/comment — ~6,750 tk"]
+        B3["All tags × N tickets — ~3,200 tk"]
+        B4["2 calls per ticket"]
     end
 
-    B_tags -->|"80% reduction"| A_tags
-    B_comments -->|"83% reduction"| A_comments
-    B_search -->|"81% reduction"| A_search
-    B_calls -->|"50% fewer calls"| A_calls
+    subgraph After["✅ zd-api.sh Output"]
+        A1["13 filtered tags — ~80 tk"]
+        A2["500 chars/comment — ~1,125 tk"]
+        A3["7 fields extracted — ~600 tk"]
+        A4["1 combined read call"]
+    end
 
+    E1 --> B1 -->|"⬇ 80%"| A1
+    E2 --> B2 -->|"⬇ 83%"| A2
+    E3 --> B3 -->|"⬇ 81%"| A3
+    E1 & E2 --> B4 -->|"⬇ 50%"| A4
+
+    style Endpoints fill:#03363d,color:#fff
     style Before fill:#c1121f,color:#fff
     style After fill:#2d6a4f,color:#fff
 ```
+
+| Optimization | Technique | Savings |
+|---|---|---|
+| **Tag filtering** | Only extract 13 useful categories (product, tier, complexity, impact, spec, account, mrr, org, region, critical, hipaa, top75, replies) from 50+ raw tags | ~80% |
+| **Comment truncation** | Default 500 chars/body, configurable (pass `0` for full) | ~83% |
+| **Search compaction** | Extract key metadata fields from tags instead of dumping all | ~81% |
+| **Combined `read`** | Single call fetches ticket metadata + all comments | 50% fewer calls |
 
 ## Tag Filtering
 
