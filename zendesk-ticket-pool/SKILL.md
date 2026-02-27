@@ -1,15 +1,124 @@
 ---
 name: zendesk-ticket-pool
-description: Check and display the current Zendesk ticket pool assigned to the user using Glean MCP. Use when the user asks about their ticket queue, open tickets, pending tickets, ticket pool, ticket status, workload, or wants to see what tickets need attention. This skill should be used proactively at the start of conversations when working in the TSE workspace.
+description: Check and display the current Zendesk ticket pool assigned to the user. Uses Chrome JS execution (real-time, no delay) as primary method, with Glean MCP as fallback. Use when the user asks about their ticket queue, open tickets, pending tickets, ticket pool, ticket status, workload, or wants to see what tickets need attention. This skill should be used proactively at the start of conversations when working in the TSE workspace.
 ---
 
 # Zendesk Ticket Pool Checker
 
+## Prerequisites
+
+- **macOS** with `osascript`
+- **Google Chrome** running with a tab open on `zendesk.com`
+- **"Allow JavaScript from Apple Events"** enabled in Chrome (View > Developer > Allow JavaScript from Apple Events) — one-time setup
+
+## How It Works
+
+Two methods available, tried in order:
+
+1. **Chrome JS (primary)** — Real-time via `osascript` + Zendesk API through Chrome's authenticated session. No delay.
+2. **Glean MCP (fallback)** — If Chrome is unavailable or the JS call fails. Has up to 30 minutes indexing latency.
+
 ## Instructions
 
-### Step 1: Fetch Assigned Tickets
+### Step 1: Try Chrome JS (Real-Time)
 
-Run **two parallel** Glean searches to get all active tickets assigned to the user:
+#### 1a: Find the Zendesk tab in Chrome
+
+```bash
+osascript -e '
+tell application "Google Chrome"
+    set tabIndex to -1
+    repeat with w in windows
+        set tabCount to count of tabs of w
+        repeat with i from 1 to tabCount
+            if URL of tab i of w contains "zendesk.com" then
+                set tabIndex to i
+                exit repeat
+            end if
+        end repeat
+        if tabIndex > -1 then exit repeat
+    end repeat
+    return tabIndex
+end tell'
+```
+
+If `tabIndex` is `-1`, Chrome has no Zendesk tab open — skip to **Step 2 (Glean Fallback)**.
+
+#### 1b: Get current user (dynamic, never hardcode)
+
+```bash
+cat > /tmp/zd_pool_user.scpt << 'APPLESCRIPT'
+tell application "Google Chrome"
+    tell tab {TAB_INDEX} of window 1
+        set jsCode to "var xhr = new XMLHttpRequest(); xhr.open('GET', '/api/v2/users/me.json', false); xhr.send(); if (xhr.status === 200) { var u = JSON.parse(xhr.responseText).user; u.id + ' | ' + u.name + ' | ' + u.email; } else { 'ERROR: HTTP ' + xhr.status; }"
+        return (execute javascript jsCode)
+    end tell
+end tell
+APPLESCRIPT
+
+osascript /tmp/zd_pool_user.scpt
+```
+
+If this returns an error (e.g., JS execution disabled), skip to **Step 2 (Glean Fallback)**.
+
+#### 1c: Fetch all active tickets (new + open + pending)
+
+Run **two commands in parallel** to get all ticket statuses:
+
+**Search 1 — New/Open tickets:**
+```bash
+cat > /tmp/zd_pool_open.scpt << 'APPLESCRIPT'
+tell application "Google Chrome"
+    tell tab {TAB_INDEX} of window 1
+        set jsCode to "var xhr = new XMLHttpRequest(); xhr.open('GET', '/api/v2/search.json?query=type:ticket+assignee:me+(status:new+OR+status:open)&sort_by=updated_at&sort_order=desc', false); xhr.send(); if (xhr.status === 200) { var data = JSON.parse(xhr.responseText); var result = 'TOTAL:' + data.count + '\\n'; data.results.forEach(function(t) { var tags = (t.tags || []).join(','); result += t.id + ' | ' + t.status + ' | ' + (t.priority || 'none') + ' | ' + t.updated_at + ' | ' + t.created_at + ' | ' + (t.subject || '') + ' | ' + tags + '\\n'; }); result; } else { 'ERROR: HTTP ' + xhr.status; }"
+        return (execute javascript jsCode)
+    end tell
+end tell
+APPLESCRIPT
+
+osascript /tmp/zd_pool_open.scpt
+```
+
+**Search 2 — Pending tickets:**
+```bash
+cat > /tmp/zd_pool_pending.scpt << 'APPLESCRIPT'
+tell application "Google Chrome"
+    tell tab {TAB_INDEX} of window 1
+        set jsCode to "var xhr = new XMLHttpRequest(); xhr.open('GET', '/api/v2/search.json?query=type:ticket+assignee:me+status:pending&sort_by=updated_at&sort_order=desc', false); xhr.send(); if (xhr.status === 200) { var data = JSON.parse(xhr.responseText); var result = 'TOTAL:' + data.count + '\\n'; data.results.forEach(function(t) { var tags = (t.tags || []).join(','); result += t.id + ' | ' + t.status + ' | ' + (t.priority || 'none') + ' | ' + t.updated_at + ' | ' + t.created_at + ' | ' + (t.subject || '') + ' | ' + tags + '\\n'; }); result; } else { 'ERROR: HTTP ' + xhr.status; }"
+        return (execute javascript jsCode)
+    end tell
+end tell
+APPLESCRIPT
+
+osascript /tmp/zd_pool_pending.scpt
+```
+
+#### 1d: Optionally fetch the specific view/filter
+
+If the user provides a view URL like `https://datadog.zendesk.com/agent/filters/{VIEW_ID}`, fetch that view directly:
+
+```bash
+cat > /tmp/zd_pool_view.scpt << 'APPLESCRIPT'
+tell application "Google Chrome"
+    tell tab {TAB_INDEX} of window 1
+        set jsCode to "var xhr = new XMLHttpRequest(); xhr.open('GET', '/api/v2/views/{VIEW_ID}/execute.json?sort_by=created_at&sort_order=desc', false); xhr.send(); if (xhr.status === 200) { var data = JSON.parse(xhr.responseText); var result = 'VIEW_COUNT:' + data.count + '\\n'; if (data.rows) { data.rows.forEach(function(r) { result += r.ticket_id + ' | ' + r.status + ' | ' + r.priority + ' | ' + r.updated + ' | ' + r.created + ' | ' + r.subject + '\\n'; }); } result; } else { 'ERROR: HTTP ' + xhr.status; }"
+        return (execute javascript jsCode)
+    end tell
+end tell
+APPLESCRIPT
+
+osascript /tmp/zd_pool_view.scpt
+```
+
+Then skip to **Step 3: Parse & Present**.
+
+---
+
+### Step 2: Glean Fallback
+
+Use this only if Chrome JS is unavailable (no Zendesk tab, JS execution disabled, etc.).
+
+Run **two parallel** Glean searches:
 
 **Search 1 - Open tickets:**
 ```
@@ -29,54 +138,57 @@ dynamic_search_result_filters: assignee:Alexandre VEA|status:pending
 exhaustive: true
 ```
 
-### Step 2: Parse Ticket Data
+**Note:** Glean data may be up to 30 minutes stale. Mention this in the output header.
+
+---
+
+### Step 3: Parse Ticket Data
 
 From each result, extract:
 
-| Field | Source |
-|-------|--------|
-| Ticket ID | URL path (e.g. `2511079` from URL) |
-| Subject | `title` |
-| Status | `matchingFilters.status[0]` |
-| Priority | `matchingFilters.priority[0]` |
-| Critical | `matchingFilters.critical[0]` |
-| Customer | `matchingFilters.datadogorgname[0]` |
-| Product | `matchingFilters.producttype[0]` (use readable name, not tag) |
-| Complexity | `matchingFilters.ticketcomplexity` (use readable name) |
-| Tier | `matchingFilters.tier` (use value like "0","1","2","3" or "N/A") |
-| MRR | `matchingFilters.mrrbucket` (use readable name) |
-| Top75 | `matchingFilters.top75org[0]` |
-| Replies | Check `matchingFilters.label` for tags: `5_agent_replies`, `10_agent_replies`, `15_agent_replies`, `20_agent_replies`. Use the highest matching value. |
-| Follow-up | Detect if ticket is a follow-up (see follow-up detection below) |
-| Parent Ticket | If follow-up, extract the parent ticket ID |
-| Created | `createTime` |
-| Updated | `updateTime` |
-| Wait Time | Compute elapsed time between `updateTime` and now |
+| Field | Chrome JS Source | Glean Source |
+|-------|-----------------|--------------|
+| Ticket ID | `t.id` | URL path |
+| Subject | `t.subject` | `title` |
+| Status | `t.status` | `matchingFilters.status[0]` |
+| Priority | `t.priority` | `matchingFilters.priority[0]` |
+| Critical | tags contain `critical` | `matchingFilters.critical[0]` |
+| Customer | tags containing `org:` pattern | `matchingFilters.datadogorgname[0]` |
+| Product | tags containing PPC tag | `matchingFilters.producttype[0]` |
+| Tier | tags containing tier tag | `matchingFilters.tier` |
+| Replies | tags: `5_agent_replies`, `10_agent_replies`, etc. | same via `matchingFilters.label` |
+| Follow-up | subject starts with `Re:` | title starts with `Re:` |
+| Parent Ticket | detected from subject/tags | snippets for `follow-up to your previous request #XXXXXX` |
+| Created | `t.created_at` | `createTime` |
+| Updated | `t.updated_at` | `updateTime` |
+| Wait Time | elapsed since updated_at | elapsed since updateTime |
 
 ### Follow-up Detection
 
-A ticket is a **follow-up** when any of these are true:
-1. Title starts with `Re:` (e.g. "Re: SCS-Datadog-EMEA asked for support!")
-2. Snippets contain `follow-up to your previous request #XXXXXX`
-3. Snippets contain `This is a follow-up to your previous request`
+A ticket is a **follow-up** when:
+1. Subject/title starts with `Re:`
+2. Content contains `follow-up to your previous request #XXXXXX`
+3. Content contains `This is a follow-up to your previous request`
 
-When a follow-up is detected:
-- Extract the **parent ticket ID** from the text (e.g. `#2386180` -> `2386180`)
-- Mark the ticket with a "Follow-up" indicator in the table
-- Note that **reply counts on follow-ups reflect the cumulative history** across all linked tickets, not just the current one
-- Link the parent ticket in the output: `[#parentID](https://datadog.zendesk.com/agent/tickets/parentID)`
+When detected:
+- Extract the **parent ticket ID** (e.g. `#2386180` -> `2386180`)
+- Mark with "Follow-up" indicator
+- Reply counts on follow-ups reflect cumulative history
+- Link parent: `[#parentID](https://datadog.zendesk.com/agent/tickets/parentID)`
 
-### Step 3: Present Results
+### Step 4: Present Results
 
-#### Summary
+#### Header
 
 ```
-## Ticket Pool - [Date]
+## Ticket Pool - [Date] [Time]
 
-**Open:** X | **Pending:** Y | **Total: X+Y**
+**Source:** Chrome JS (real-time) | OR | **Source:** Glean (may be up to 30min stale)
+
+**New:** X | **Open:** Y | **Pending:** Z | **Total: X+Y+Z**
 ```
 
-#### Table (sorted by priority score desc, then last update)
+#### Table (sorted by priority desc, then last update)
 
 | # | Ticket | Subject | Status | Priority | Customer | Product | Replies | Tier | Updated | Notes |
 |---|--------|---------|--------|----------|----------|---------|---------|------|---------|-------|
@@ -85,37 +197,27 @@ When a follow-up is detected:
 - Truncate subjects to ~50 chars
 - Show relative time for Updated (e.g. "2h ago", "1d ago")
 - Flag critical tickets with an indicator
-- In the Notes column, show:
-  - "Follow-up from [#parentID](link)" if it's a follow-up
-  - "Critical" if critical:true
-  - Leave empty otherwise
+- Notes column: "Follow-up from [#parentID](link)" or "Critical" or empty
 
 #### Attention Required
 
-After the main table, if any tickets match BOTH conditions below, display them in a separate highlighted section:
-- **Waiting > 24h** (elapsed time since `updateTime` exceeds 24 hours)
-- **10+ back-and-forth** (label contains `10_agent_replies`, `15_agent_replies`, or `20_agent_replies`)
-
-Format:
+If tickets match BOTH: **Waiting > 24h** AND **10+ replies** → show:
 
 ```
 ### Attention Required - Stale & High-Touch Tickets
-
-These tickets have been waiting over 24h AND have 10+ exchanges:
 
 | Ticket | Subject | Status | Customer | Replies | Waiting Since |
 |--------|---------|--------|----------|---------|---------------|
 ```
 
-If no tickets match both conditions, skip this section entirely.
+Skip if none match.
 
 #### Action Items
 
-After the table, list:
-1. **Needs Response** - Open tickets waiting for agent reply
+1. **Needs Response** - New/Open tickets waiting for agent reply
 2. **SLA Risk** - Critical or high-priority tickets with stale updates
 3. **Pending Bump** - Pending tickets that may need customer follow-up
-4. **High-Touch Stale** - Tickets with 10+ replies AND waiting > 24h (from the Attention Required section above)
+4. **High-Touch Stale** - 10+ replies AND waiting > 24h
 
 ### Deep Dive
 
@@ -123,7 +225,12 @@ If asked about a specific ticket, use `user-glean_ai-code-read_document` with th
 
 ## Filtering
 
-Combine filters with `|` in `dynamic_search_result_filters`:
+For Chrome JS, modify the search query parameter:
+- By status: `status:open`, `status:pending`, `status:new`
+- By priority: `priority:high`, `priority:urgent`
+- Combined: `type:ticket assignee:me status:open priority:high`
+
+For Glean fallback, combine filters with `|` in `dynamic_search_result_filters`:
 - Priority: `priority:high`
 - Critical: `critical:true`
 - Product: `producttype:Agent`
