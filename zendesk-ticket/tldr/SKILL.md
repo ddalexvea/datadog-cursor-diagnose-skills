@@ -58,7 +58,7 @@ What information or action is needed from the customer before proceeding.
 
 ## Filter Logic
 
-- **Include:** tickets with status open, pending, or on hold assigned to you
+- **Include:** tickets with status new, open, pending, or hold (on-hold TSE / on-hold Eng) assigned to you
 - **Exclude:** tickets where you have NOT yet posted any public reply (newly assigned, untouched)
 - **How to detect:** Check ticket comments via Chrome JS (primary) or Glean (fallback) — if no message from the current user is found, skip it
 

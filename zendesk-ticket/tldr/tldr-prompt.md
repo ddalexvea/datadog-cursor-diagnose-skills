@@ -4,10 +4,11 @@ Generate TLDR summaries for all active Zendesk tickets assigned to me.
 
 ### Primary: Chrome JS (real-time)
 
-Run BOTH searches:
+Run ALL searches:
 ```bash
 ~/.cursor/skills/_shared/zd-api.sh search "type:ticket assignee:me (status:new OR status:open)"
 ~/.cursor/skills/_shared/zd-api.sh search "type:ticket assignee:me status:pending"
+~/.cursor/skills/_shared/zd-api.sh search "type:ticket assignee:me status:hold"
 ```
 
 Output includes: ID | status | priority | product | tier | complexity | replies | updated | subject
@@ -31,6 +32,13 @@ Search 2 — Pending tickets:
 - query: *
 - app: zendesk
 - dynamic_search_result_filters: assignee:{AGENT_NAME}|status:pending
+- exhaustive: true
+
+Search 3 — On-hold tickets (TSE on hold, Eng on hold, etc.):
+- Tool: user-glean_ai-code-search
+- query: *
+- app: zendesk
+- dynamic_search_result_filters: assignee:{AGENT_NAME}|status:hold
 - exhaustive: true
 
 **Note:** Glean data may be up to 30 minutes stale.
@@ -116,7 +124,7 @@ After writing the file, display a brief table:
 
 | Ticket | Subject | Status | TLDR |
 |--------|---------|--------|------|
-| #ID | subject | open/pending | generated |
+| #ID | subject | open/pending/hold | generated |
 | #ID | subject | open | skipped (no response) |
 
 ## Single ticket mode
