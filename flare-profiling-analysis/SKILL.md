@@ -114,6 +114,125 @@ Structured block for copy-pasting into a JIRA card: symptom, top allocators/CPU 
 | Multiple of the above | **Multiple Issues** |
 | No significant findings in any profile | **Normal** |
 
+## How to Request Profiling from Customer
+
+If the flare has **no `profiles/` directory**, the customer needs to enable profiling first. There are two methods:
+
+### Method 1: One-time capture via flare command (recommended for first diagnosis)
+
+```bash
+sudo datadog-agent flare --profile 30
+```
+
+This captures a 30-second profiling snapshot and includes it in the flare. No config change needed, no restart. Available since Agent **v6.x / v7.x** (all modern versions).
+
+**When to use:** Quick one-off capture. Customer just needs to run the command while the issue is occurring (high CPU/memory).
+
+### Method 2: Continuous profiling via config (recommended for intermittent issues)
+
+Add to `datadog.yaml`:
+
+```yaml
+# Core agent profiling
+internal_profiling:
+  enabled: true
+
+# Process agent profiling (if process agent memory/CPU is the concern)
+process_config:
+  internal_profiling:
+    enabled: true
+```
+
+Restart the agent after this change. Profiles will be continuously collected and included in every flare automatically. Available since Agent **v7.53.0+**.
+
+**When to use:** When the issue is intermittent or hard to reproduce. The customer can send a flare at any time and profiles will be there.
+
+### Customer message template — requesting profiling
+
+```
+To investigate the resource usage issue, we need to collect Go profiling data from the agent. Please do the following:
+
+1. Wait until the issue (high memory/CPU) is actively occurring
+2. Run the following command:
+
+   sudo datadog-agent flare --profile 30
+
+3. Send us the resulting flare number
+
+This will capture a 30-second snapshot of where the agent is spending CPU and memory, which we will analyze to identify the source of the issue.
+
+If the issue is intermittent and hard to catch, you can enable continuous profiling instead:
+- Add `internal_profiling: enabled: true` under the root of your `datadog.yaml`
+- Restart the agent
+- When the issue next occurs, send a normal flare — profiles will be included automatically
+```
+
+### Key references
+- [Troubleshooting High Agent CPU or Memory Consumption](https://datadoghq.atlassian.net/wiki/spaces/TS/pages/1106313536)
+- [Agent Process Memory Is Very Large (Gigabyte+)](https://datadoghq.atlassian.net/wiki/spaces/TS/pages/3606250273)
+- [Agent Internal Profiling](https://datadoghq.atlassian.net/wiki/spaces/agent/pages/2234318891)
+- [Viewing Datadog Agent Profiles (pprof)](https://datadoghq.atlassian.net/wiki/spaces/~712020e44eba1b675f43abbbc1a1dcd1af7b79/pages/4425613736)
+- [Public docs: High CPU or Memory](https://docs.datadoghq.com/agent/troubleshooting/high_memory_usage/)
+
+## Ownership: Integration vs Core Agent
+
+After analyzing the profiles, the TSE must determine **who owns the fix** — this dictates where to escalate.
+
+### How to determine ownership from pprof output
+
+| Pattern in function path | Owner | What it means |
+|--------------------------|-------|---------------|
+| `pkg/collector/python._Cfunc_GoString` | **Integration (Python check)** | Memory from Python-to-Go string conversion — proportional to metrics submitted by Python checks |
+| `pkg/collector/python.*` | **Integration (Python)** | Python check runtime overhead |
+| `pkg/collector/corechecks/*` | **Integration (Go check)** | A specific Go-based core check |
+| `pkg/aggregator.*` | **Core Agent** (aggregation) | Metric context tracking, sample buffering — often caused by high cardinality |
+| `pkg/serializer.*` | **Core Agent** (serialization) | Serialization buffers — usually related to payload size |
+| `pkg/forwarder.*` | **Core Agent** (forwarder) | Network/HTTP client — may indicate backpressure |
+| `pkg/trace.*` | **Trace-Agent** (APM) | Trace processing pipeline |
+| `pkg/process.*` | **Process Agent** | Process/container collection |
+| `pkg/obfuscate.*` | **DBM / APM** | SQL obfuscation — heavy with DBM |
+| `pkg/metrics.*` | **Core Agent** (metrics pipeline) | Gauge/Histogram flush — scales with # of metric contexts |
+| `pkg/tagset.*` | **Core Agent** (tagging) | Tag hashing — high cardinality driver |
+| `runtime.*` | **Go runtime** | GC, goroutine scheduling — usually informational |
+| `[libpython3.*]` | **Integration (Python runtime)** | Embedded Python interpreter CPU/memory |
+| `ristretto.*` | **Core Agent** (cache) | In-memory cache for contexts/tags |
+
+### Decision tree for escalation routing
+
+```
+1. Is the top consumer in pkg/collector/python.* or [libpython*]?
+   → YES: Integration issue. Check which checks are running (status.log).
+          Correlate with the number of instances.
+          Escalate to the integration team owning that check.
+
+2. Is the top consumer in pkg/aggregator.* or pkg/metrics.*?
+   → YES: Core agent aggregation pipeline.
+          Likely high cardinality (too many unique metric contexts).
+          Escalate to Agent team (#support-agent).
+
+3. Is the top consumer in pkg/trace.*?
+   → YES: Trace-agent issue.
+          Escalate to APM team.
+
+4. Is the top consumer in pkg/obfuscate.*?
+   → YES: DBM SQL obfuscation.
+          Escalate to DBM team.
+
+5. Is it in runtime.* or system libs?
+   → Usually not actionable. Look deeper at the cum% column.
+```
+
+### What to tell the escalation team
+
+The escalation summary in the report should contain:
+1. **Symptom** — what the customer reported (memory growing, CPU spike, etc.)
+2. **Top allocators / CPU consumers** — raw pprof output (top 5-10 lines)
+3. **Heap diff** — what grew between the two snapshots
+4. **Agent context** — version, uptime, running checks, install method
+5. **memstats** — Alloc, Sys, HeapInuse, HeapObjects, NumGC
+6. **Correlation** — if the growth maps to a specific integration, call it out explicitly
+7. **Flare link** — the flare file or ticket link
+
 ## Integration
 
 Works standalone. Can be used alongside:

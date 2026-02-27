@@ -154,7 +154,46 @@ For `go-routine-dump.log`:
 - Note if count is unusually high (>500 is worth flagging)
 - Do NOT dump the full content — just the count
 
-## Step 10: Write the report
+## Step 10: Determine ownership (Integration vs Core Agent)
+
+Based on the profile analysis from Steps 4-8, determine who owns the issue:
+
+### Check the top allocators/CPU consumers against this table:
+
+| Pattern in function path | Owner | Escalation |
+|--------------------------|-------|------------|
+| `pkg/collector/python.*` or `[libpython*]` | **Integration (Python check)** | Integration team for that specific check |
+| `pkg/collector/corechecks/*` | **Integration (Go check)** | Integration team for that specific check |
+| `pkg/aggregator.*`, `pkg/metrics.*` | **Core Agent** | `#support-agent` → Agent team |
+| `pkg/serializer.*` | **Core Agent** | `#support-agent` → Agent team |
+| `pkg/forwarder.*` | **Core Agent** | `#support-agent` → Agent team |
+| `pkg/trace.*` | **Trace-Agent / APM** | APM team |
+| `pkg/process.*` | **Process Agent** | Process/Container team |
+| `pkg/obfuscate.*` | **DBM / APM** | DBM or APM team |
+| `pkg/tagset.*` | **Core Agent** (tagging) | `#support-agent` → Agent team |
+| `ristretto.*` | **Core Agent** (cache) | `#support-agent` → Agent team |
+| `runtime.*` | **Go runtime** | Usually informational — look at cum% for underlying cause |
+
+### Cross-reference with running checks
+
+From Step 2, you have the list of running checks. If the top allocator is in `pkg/collector/python.*`:
+- The number of check instances matters (e.g., 128 MySQL instances = expected high Python memory)
+- A single check type dominating → likely that integration's problem
+- Many different checks with normal instance counts → likely core agent overhead
+
+### Include in the report
+
+Add an **Ownership** section right after the Verdict:
+```
+## Ownership
+
+**Primary owner:** {Integration: MySQL / Core Agent / Trace-Agent / etc.}
+**Reason:** {Top allocator `function.Name` belongs to `pkg/xxx`, which is owned by {team}}
+**Escalation channel:** {#support-agent / #support-apm / #support-dbm / etc.}
+**Expected behavior?** {Yes — high due to 128 check instances / No — abnormal growth pattern}
+```
+
+## Step 11: Write the report
 
 Save to `investigations/flare-profiling-{hostname}.md`:
 
@@ -169,6 +208,15 @@ Save to `investigations/flare-profiling-{hostname}.md`:
 ## Verdict: {MEMORY LEAK / CPU SPIKE / CONTENTION / MULTIPLE ISSUES / NORMAL}
 
 {One-line summary of the main finding}
+
+---
+
+## Ownership
+
+**Primary owner:** {Integration: MySQL / Core Agent / Trace-Agent / Process Agent / DBM / etc.}
+**Reason:** {Top allocator/CPU consumer `function.Name` belongs to `pkg/xxx`, owned by {team}}
+**Escalation channel:** {#support-agent / #support-apm / #support-dbm / #support-integrations / etc.}
+**Expected behavior?** {Yes — explain why (e.g., high due to N check instances) / No — abnormal growth}
 
 ---
 
@@ -371,6 +419,37 @@ Flare: {path or link}
 - No single function dominates CPU
 - No significant contention
 - Memory stats consistent with expected agent footprint
+
+## When profiles/ is missing from the flare
+
+If there is no `profiles/` directory, stop the analysis and display guidance for the TSE:
+
+```
+⚠️ No profiles/ directory found in this flare.
+
+The customer needs to enable profiling first. Two options:
+
+### Option 1: One-time capture (quick, no config change)
+Ask the customer to run while the issue is occurring:
+  sudo datadog-agent flare --profile 30
+
+### Option 2: Continuous profiling (for intermittent issues)
+Ask the customer to add to datadog.yaml:
+  internal_profiling:
+    enabled: true
+Then restart the agent. Profiles will be included in every future flare.
+(Available since Agent v7.53.0+)
+
+### For process agent specifically:
+  process_config:
+    internal_profiling:
+      enabled: true
+
+### References:
+- https://datadoghq.atlassian.net/wiki/spaces/TS/pages/1106313536
+- https://datadoghq.atlassian.net/wiki/spaces/agent/pages/2234318891
+- https://docs.datadoghq.com/agent/troubleshooting/high_memory_usage/
+```
 
 ## Rules
 
