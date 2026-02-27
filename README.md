@@ -14,48 +14,18 @@ All `zendesk-*` skills access Zendesk data in **real-time** through Chrome's aut
 
 ```mermaid
 flowchart LR
-    subgraph Agent["Cursor Agent"]
-        Skill["zendesk-* skill<br>(prompt.md)"]
-        ZD["_shared/zd-api.sh"]
-    end
+    A["🤖 Cursor Agent"] -->|"zd-api.sh read 1234567"| B["📜 osascript"]
+    B -->|"execute javascript"| C["🌐 Chrome + Zendesk 🔐"]
+    C -->|"sync XHR → /api/v2/*"| D["☁️ Zendesk API"]
+    D -->|"JSON"| C -->|"formatted stdout"| B --> A
 
-    subgraph macOS["macOS"]
-        OSA["osascript<br>(AppleScript)"]
-    end
+    A -.->|"fallback"| E["🔍 Glean MCP"]
 
-    subgraph Chrome["Google Chrome"]
-        Tab["Zendesk Tab<br>(authenticated)"]
-        JS["sync XMLHttpRequest"]
-    end
-
-    subgraph ZenAPI["Zendesk REST API"]
-        Users["/api/v2/users/me"]
-        Tickets["/api/v2/tickets/ID"]
-        Comments["/api/v2/tickets/ID/comments"]
-        Search["/api/v2/search"]
-    end
-
-    subgraph Fallback["Glean MCP (fallback)"]
-        GRead["read_document"]
-        GSearch["search"]
-        GChat["ai-code-chat"]
-    end
-
-    Skill -->|"1-line bash call"| ZD
-    ZD -->|"AppleScript"| OSA
-    OSA -->|"execute javascript"| Tab
-    Tab --> JS
-    JS --> Users & Tickets & Comments & Search
-    Search -->|"JSON → formatted stdout"| JS
-    JS --> OSA --> ZD --> Skill
-
-    Skill -.->|"if Chrome unavailable"| Fallback
-
-    style Agent fill:#1a1a2e,color:#fff
-    style Chrome fill:#4285f4,color:#fff
-    style ZenAPI fill:#03363d,color:#fff
-    style macOS fill:#333,color:#fff
-    style Fallback fill:#457b9d,color:#fff
+    style A fill:#1a1a2e,color:#fff
+    style B fill:#333,color:#fff
+    style C fill:#4285f4,color:#fff
+    style D fill:#03363d,color:#fff
+    style E fill:#457b9d,color:#fff
 ```
 
 ### How It Works
