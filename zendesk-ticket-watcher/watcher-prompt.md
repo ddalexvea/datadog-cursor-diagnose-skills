@@ -27,6 +27,8 @@ Search 2 - Pending tickets:
 Extract all ticket IDs from search results. Compare against `_processed.log`.
 
 ### Step 4: If NEW tickets found
+
+**4a. Add to processed log + notify:**
 For each new ticket:
 1. Append `TICKET_ID|TIMESTAMP` to `investigations/_processed.log`
 2. Send a macOS notification:
@@ -35,18 +37,24 @@ osascript -e 'display notification "Ticket #TICKET_ID - SUBJECT" with title "�
 ```
 3. Append a row to `investigations/_alert.md` (create table header if file is empty)
 
-Then investigate all new tickets **inline** (do NOT use subagents/Task tool — they require manual "Allow" clicks).
+**4b. Read all new tickets to check if already handled:**
+Make ONE tool call batch with `user-glean_ai-code-read_document` for ALL new tickets simultaneously:
+- urls: ["https://datadog.zendesk.com/agent/tickets/TICKET_A", "https://datadog.zendesk.com/agent/tickets/TICKET_B", ...]
+
+For each ticket, check if Alexandre has already posted a reply (look for messages from "Alexandre" in the conversation).
+
+**4c. Filter — skip already-handled tickets:**
+- If Alexandre has already replied → **SKIP investigation**. Just log: "Skipped ZD-XXXXX (already responded)"
+- If Alexandre has NOT replied yet → **INVESTIGATE**
+
+This handles the case where the watcher was not running when tickets were assigned and the user handled them manually before the next watcher cycle.
+
+**4d. Investigate remaining tickets inline** (do NOT use subagents/Task tool — they require manual "Allow" clicks).
 
 **IMPORTANT: Batch tool calls across all tickets in parallel to maximize speed.**
 
-**Round 1 — Read all tickets at once:**
-Make ONE tool call batch with `user-glean_ai-code-read_document` for ALL new tickets simultaneously:
-- urls: ["https://datadog.zendesk.com/agent/tickets/TICKET_A", "https://datadog.zendesk.com/agent/tickets/TICKET_B", "https://datadog.zendesk.com/agent/tickets/TICKET_C"]
-
-Extract from each: customer name, org, priority, problem description, error messages, product area.
-
-**Round 2 — Search everything in parallel (one batch):**
-In a SINGLE message, fire ALL these searches for ALL tickets at once:
+**Round 1 — Search everything in parallel (one batch):**
+In a SINGLE message, fire ALL these searches for ALL un-handled tickets at once:
 - For each ticket: `user-glean_ai-code-search` (app: zendesk) — similar past tickets
 - For each ticket: `user-glean_ai-code-search` (app: confluence) — internal docs
 - For each ticket: `user-glean_ai-code-search` (app: "glean help docs") — public docs
@@ -54,10 +62,10 @@ In a SINGLE message, fire ALL these searches for ALL tickets at once:
 
 Example: 3 new tickets = 12 parallel search calls in one message.
 
-**Round 3 — Write all reports:**
+**Round 2 — Write all reports:**
 Write all `investigations/ZD-TICKET_ID.md` files following the template in `zendesk-ticket-investigator/investigate-prompt.md`.
 
-This way, 3 tickets take roughly the same time as 1 ticket (3 rounds of parallel calls instead of 3x sequential).
+This way, 3 tickets take roughly the same time as 1 ticket (2 rounds of parallel calls instead of 3x sequential).
 
 ### Step 5: If NO new tickets
 Write `No new tickets - CURRENT_DATETIME` to `investigations/_last_run.log`

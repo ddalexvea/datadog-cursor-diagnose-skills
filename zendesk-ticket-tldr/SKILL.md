@@ -6,7 +6,6 @@ description: Generate TLDR summaries for all assigned tickets (open, pending, on
 # Ticket TLDR Generator
 
 Generates structured TLDR summaries for all your active Zendesk tickets. Only summarizes tickets where you have already posted a response — skips newly assigned tickets you haven't answered yet.
-
 ## When This Skill is Activated
 
 Triggers: "tldr my tickets", "ticket summaries", "standup notes", "status update", "summarize my tickets", "handoff notes"

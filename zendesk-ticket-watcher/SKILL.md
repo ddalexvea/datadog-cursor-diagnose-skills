@@ -6,7 +6,6 @@ description: Background ticket watcher that monitors Zendesk for new assignments
 # Ticket Watcher
 
 Autonomous background watcher that runs in a dedicated Cursor chat, checking Zendesk for new ticket assignments via Glean MCP. When new tickets are found, it sends macOS notifications and investigates each ticket inline (no subagents, no approval clicks needed).
-
 ## Architecture
 
 ```
