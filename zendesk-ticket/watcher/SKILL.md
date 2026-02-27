@@ -54,7 +54,7 @@ To stop: just type "stop" in the watcher chat, or close it.
 ## When This Skill is Activated
 
 If an agent receives a message like "start the ticket watcher", "watch my tickets", or "ticket monitoring":
-1. Read `watcher-prompt.md` from this skill folder (`~/.cursor/skills/zendesk-ticket-watcher/watcher-prompt.md`)
+1. Read `watcher-prompt.md` from this skill folder (`~/.cursor/skills/zendesk-ticket/watcher/watcher-prompt.md`)
 2. Follow every step in that file exactly
 3. Loop forever until the user says stop
 
@@ -65,7 +65,7 @@ If an agent receives a message like "start the ticket watcher", "watch my ticket
 | `SKILL.md` | This file — skill definition |
 | `watcher-prompt.md` | The looping prompt for the dedicated watcher chat |
 
-For ticket investigation, this skill uses the standalone `zendesk-ticket-investigator` skill (`~/.cursor/skills/zendesk-ticket-investigator/`).
+For ticket investigation, this skill uses the standalone `investigator` skill (`~/.cursor/skills/zendesk-ticket/investigator/`).
 
 ## Output (in workspace `investigations/`)
 

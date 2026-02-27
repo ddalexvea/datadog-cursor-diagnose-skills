@@ -57,7 +57,7 @@ Returns `REPLIED` or `NOT_REPLIED`. Glean fallback: check for `AGENT_NAME` (reso
 For ALL un-handled tickets at once: zendesk (similar), confluence (docs), glean help docs, github (code).
 
 **Round 2 — Write reports:**
-Write `investigations/ZD-{ID}.md` per `zendesk-ticket-investigator/investigate-prompt.md`.
+Write `investigations/ZD-{ID}.md` per `zendesk-ticket/investigator/investigate-prompt.md`.
 
 ### Step 5: If NO new tickets
 Write `No new tickets - CURRENT_DATETIME` to `investigations/_last_run.log`

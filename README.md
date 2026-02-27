@@ -41,24 +41,49 @@ flowchart LR
 
 The `zd-api.sh` helper filters and compacts API responses to minimize token consumption (~80% reduction on tags, ~83% on comments). See [`_shared/README.md`](_shared/README.md) for detailed diagrams and benchmarks.
 
+## Folder Structure
+
+```
+~/.cursor/skills/
+├── _shared/                        Shared helper scripts
+│   └── zd-api.sh                   Chrome JS bridge (9 commands)
+├── zendesk-ticket/                 All Zendesk ticket skills
+│   ├── pool/                       Check assigned tickets
+│   ├── watcher/                    Background ticket monitor
+│   ├── investigator/               Deep ticket investigation
+│   ├── tldr/                       Ticket summaries
+│   ├── classifier/                 Bug/question/feature classification
+│   ├── routing/                    Spec & team routing
+│   ├── info-needed/                Missing info gap analysis
+│   ├── repro-needed/               Reproduction decision tree
+│   ├── difficulty/                 Difficulty scoring (1-10)
+│   ├── eta/                        Time-to-resolution estimate
+│   ├── org-disable/                Org disable workflow
+│   └── attachment-downloader/      Download flares & attachments
+├── flare-network-analysis/         Forwarder/intake connectivity analysis
+├── flare-profiling-analysis/       Go pprof analysis
+├── snagit-screen-record/           Screen recording via Snagit
+└── text-shortcut-manager/          Espanso text shortcuts
+```
+
 ## Available Skills
 
-### Zendesk Skills (real-time via Chrome JS + Glean fallback)
+### Zendesk Skills — `zendesk-ticket/` (real-time via Chrome JS + Glean fallback)
 
-| Skill | Description | Trigger |
-|-------|-------------|---------|
-| `zendesk-ticket-pool` | Check assigned tickets (open/pending) with priority, product, tier, follow-up detection, stale alerts | "check my tickets", "ticket pool" |
-| `zendesk-ticket-watcher` | Autonomous background watcher — loops in a dedicated chat, detects new tickets, sends macOS notifications, investigates inline | "start the ticket watcher" |
-| `zendesk-ticket-investigator` | Deep investigation — reads content, searches similar cases, checks docs & GitHub, gathers customer context, writes report | "investigate ticket #1234567" |
-| `zendesk-ticket-tldr` | Generate structured TLDR summaries for all active tickets where you've responded — issue, investigation, next steps, need from customer | "tldr my tickets", "standup notes" |
-| `zendesk-ticket-classifier` | Classify ticket nature (bug, question, feature request, incident) | "classify ticket #1234567" |
-| `zendesk-ticket-routing` | Identify owning TS specialization, engineering team, Slack channels, CODEOWNERS | "which spec for #1234567", "route ticket" |
-| `zendesk-ticket-info-needed` | Gap analysis — reads ticket + Confluence guide, outputs what's missing + copy-paste customer message | "what info do I need for #1234567" |
-| `zendesk-ticket-repro-needed` | Evaluate if hands-on reproduction is needed — decision tree + suggested environment | "should I reproduce #1234567" |
-| `zendesk-ticket-difficulty` | Score difficulty 1-10 based on issue type, products, environment, reproduction, escalation | "difficulty for #1234567" |
-| `zendesk-ticket-eta` | Estimate time of resolution — active work, calendar time, blockers, confidence level | "ETA for #1234567" |
-| `zendesk-org-disable` | Handle org disable end-to-end — determines account type, checks parent/child, finds CSM, generates 10-step workflow | "disable org for #1234567" |
-| `zendesk-attachment-downloader` | Download ticket attachments via Chrome — lists files, triggers native downloads, extracts flares, offers analysis | "download attachments from #1234567" |
+| Skill | Path | Description | Trigger |
+|-------|------|-------------|---------|
+| pool | `zendesk-ticket/pool/` | Check assigned tickets with priority, product, tier, follow-up detection, stale alerts | "check my tickets" |
+| watcher | `zendesk-ticket/watcher/` | Autonomous background watcher — loops, detects new tickets, macOS notifications, investigates inline | "start the ticket watcher" |
+| investigator | `zendesk-ticket/investigator/` | Deep investigation — similar cases, docs, GitHub, customer context, writes report | "investigate ticket #1234567" |
+| tldr | `zendesk-ticket/tldr/` | TLDR summaries for all active tickets — issue, investigation, next steps, need from customer | "tldr my tickets" |
+| classifier | `zendesk-ticket/classifier/` | Classify ticket nature (bug, question, feature request, incident) | "classify ticket #1234567" |
+| routing | `zendesk-ticket/routing/` | Identify owning TS spec, engineering team, Slack channels, CODEOWNERS | "which spec for #1234567" |
+| info-needed | `zendesk-ticket/info-needed/` | Gap analysis — what's missing + copy-paste customer message | "what info do I need for #1234567" |
+| repro-needed | `zendesk-ticket/repro-needed/` | Decision tree: is reproduction needed? + suggested environment | "should I reproduce #1234567" |
+| difficulty | `zendesk-ticket/difficulty/` | Score difficulty 1-10 based on issue type, products, environment, escalation | "difficulty for #1234567" |
+| eta | `zendesk-ticket/eta/` | Estimate time of resolution — active work, calendar time, blockers, confidence | "ETA for #1234567" |
+| org-disable | `zendesk-ticket/org-disable/` | Handle org disable end-to-end — account type, parent/child, CSM, 10-step workflow | "disable org for #1234567" |
+| attachment-downloader | `zendesk-ticket/attachment-downloader/` | Download attachments via Chrome — lists files, triggers downloads, extracts flares | "download attachments from #1234567" |
 
 ### Flare Analysis Skills (local)
 
@@ -84,7 +109,7 @@ The `zd-api.sh` helper filters and compacts API responses to minimize token cons
 
 ```mermaid
 flowchart TD
-    A["zd-api.sh search<br>(real-time)"] --> B[zendesk-ticket-watcher]
+    A["zd-api.sh search<br>(real-time)"] --> B[watcher]
     B -->|"compare with _processed.log"| C{New tickets?}
     C -->|No| S["sleep 300 → loop"]
     C -->|"Yes"| N["macOS notification"]
@@ -104,18 +129,18 @@ flowchart TD
     Skip --> S
     S --> A
 
-    DL["zendesk-attachment-downloader<br>zd-api.sh attachments + download"] -.->|"integrated in"| Inv
+    DL["attachment-downloader<br>zd-api.sh attachments + download"] -.->|"integrated in"| Inv
     FA["flare-network-analysis<br>flare-profiling-analysis"] -.->|"after flare extraction"| Inv
 
-    G["zendesk-ticket-pool<br>zd-api.sh search"] -.->|standalone| H["What's on my plate?"]
-    T["zendesk-ticket-tldr<br>zd-api.sh read + replied"] -.->|standalone| T1["investigations/TLDR-all.md"]
-    I["zendesk-ticket-info-needed<br>zd-api.sh read"] -.->|standalone| I1["What info is missing?"]
-    J["zendesk-ticket-repro-needed<br>zd-api.sh read"] -.->|standalone| J1["Should I reproduce?"]
-    K["zendesk-ticket-difficulty<br>zd-api.sh read"] -.->|standalone| K1["Score 1-10"]
-    L["zendesk-ticket-eta<br>zd-api.sh read"] -.->|standalone| L1["Time estimate"]
-    CL["zendesk-ticket-classifier<br>zd-api.sh read"] -.->|standalone| CL1["Bug/question/feature?"]
-    RT["zendesk-ticket-routing<br>zd-api.sh ticket"] -.->|standalone| RT1["Which spec + team?"]
-    OD["zendesk-org-disable<br>zd-api.sh read"] -.->|standalone| OD1["Disable workflow"]
+    G["pool<br>zd-api.sh search"] -.->|standalone| H["What's on my plate?"]
+    T["tldr<br>zd-api.sh read + replied"] -.->|standalone| T1["investigations/TLDR-all.md"]
+    I["info-needed<br>zd-api.sh read"] -.->|standalone| I1["What info is missing?"]
+    J["repro-needed<br>zd-api.sh read"] -.->|standalone| J1["Should I reproduce?"]
+    K["difficulty<br>zd-api.sh read"] -.->|standalone| K1["Score 1-10"]
+    L["eta<br>zd-api.sh read"] -.->|standalone| L1["Time estimate"]
+    CL["classifier<br>zd-api.sh read"] -.->|standalone| CL1["Bug/question/feature?"]
+    RT["routing<br>zd-api.sh ticket"] -.->|standalone| RT1["Which spec + team?"]
+    OD["org-disable<br>zd-api.sh read"] -.->|standalone| OD1["Disable workflow"]
     K1 -.->|"feeds"| L
 
     style A fill:#e63946,color:#fff
@@ -134,18 +159,18 @@ flowchart TD
 
 | Skill | Answers | Data Source |
 |-------|---------|-------------|
-| `zendesk-ticket-pool` | "What's on my plate right now?" | `zd-api.sh search` (real-time) |
-| `zendesk-ticket-watcher` | "Is there a new ticket?" | `zd-api.sh search` + `replied` |
-| `zendesk-ticket-investigator` | "What's the context & similar cases?" | `zd-api.sh read` + Glean search |
-| `zendesk-ticket-tldr` | "What's the full status of my tickets?" | `zd-api.sh read` + `replied` |
-| `zendesk-ticket-classifier` | "What kind of ticket is it?" | `zd-api.sh read` |
-| `zendesk-ticket-routing` | "Who handles it?" | `zd-api.sh ticket` (tags) |
-| `zendesk-ticket-info-needed` | "What info is missing?" | `zd-api.sh read 0` (full) |
-| `zendesk-ticket-repro-needed` | "Should I reproduce?" | `zd-api.sh read` |
-| `zendesk-ticket-difficulty` | "How hard? (1-10)" | `zd-api.sh read` |
-| `zendesk-ticket-eta` | "How long?" | `zd-api.sh read 0` (full) |
-| `zendesk-org-disable` | "How do I disable this org?" | `zd-api.sh read 0` (full) |
-| `zendesk-attachment-downloader` | "Download the flare" | `zd-api.sh attachments` + `download` |
+| pool | "What's on my plate right now?" | `zd-api.sh search` (real-time) |
+| watcher | "Is there a new ticket?" | `zd-api.sh search` + `replied` |
+| investigator | "What's the context & similar cases?" | `zd-api.sh read` + Glean search |
+| tldr | "What's the full status of my tickets?" | `zd-api.sh read` + `replied` |
+| classifier | "What kind of ticket is it?" | `zd-api.sh read` |
+| routing | "Who handles it?" | `zd-api.sh ticket` (tags) |
+| info-needed | "What info is missing?" | `zd-api.sh read 0` (full) |
+| repro-needed | "Should I reproduce?" | `zd-api.sh read` |
+| difficulty | "How hard? (1-10)" | `zd-api.sh read` |
+| eta | "How long?" | `zd-api.sh read 0` (full) |
+| org-disable | "How do I disable this org?" | `zd-api.sh read 0` (full) |
+| attachment-downloader | "Download the flare" | `zd-api.sh attachments` + `download` |
 
 Each skill works **standalone** or as part of the pipeline. No cron, no extensions — just agents following instructions.
 
@@ -204,7 +229,7 @@ Clone into your personal Cursor skills directory:
 git clone https://github.com/ddalexvea/datadog-cursor-diagnose-skills.git ~/.cursor/skills
 ```
 
-Cursor automatically discovers skills from `~/.cursor/skills/*/SKILL.md`.
+Cursor automatically discovers skills from `~/.cursor/skills/**/SKILL.md` (supports nested directories).
 
 ### Prerequisites
 
