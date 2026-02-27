@@ -4,29 +4,257 @@ A collection of Cursor IDE Agent Skills for streamlining Datadog Technical Suppo
 
 ## Purpose
 
-This repository contains reusable Agent Skills that teach Cursor's AI assistant how to perform specialized TSE tasks: checking ticket queues, monitoring for new assignments, recording screens, managing text shortcuts, and more.
+This repository contains reusable Agent Skills that teach Cursor's AI assistant how to perform specialized TSE tasks: checking ticket queues, monitoring for new assignments, investigating tickets, downloading flares, analyzing diagnostics, and more.
 
 Skills live **both locally** (`~/.cursor/skills/`) and in this GitHub repo for versioning and sharing.
 
+## Architecture — Chrome JS Bridge
+
+All `zendesk-*` skills access Zendesk data in **real-time** through Chrome's authenticated session, bypassing Glean MCP's ~30 minute indexing latency. Glean remains available as a fallback and for cross-system searches (Confluence, Salesforce, GitHub).
+
+```mermaid
+flowchart LR
+    subgraph Agent["Cursor Agent"]
+        Skill["zendesk-* skill\n(prompt.md)"]
+        ZD["_shared/zd-api.sh"]
+    end
+
+    subgraph macOS["macOS"]
+        OSA["osascript\n(AppleScript)"]
+    end
+
+    subgraph Chrome["Google Chrome"]
+        Tab["Zendesk Tab\n(authenticated)"]
+        JS["sync XMLHttpRequest"]
+    end
+
+    subgraph ZenAPI["Zendesk REST API"]
+        Users["/api/v2/users/me"]
+        Tickets["/api/v2/tickets/ID"]
+        Comments["/api/v2/tickets/ID/comments"]
+        Search["/api/v2/search"]
+    end
+
+    subgraph Fallback["Glean MCP (fallback)"]
+        GRead["read_document"]
+        GSearch["search"]
+        GChat["ai-code-chat"]
+    end
+
+    Skill -->|"1-line bash call"| ZD
+    ZD -->|"AppleScript"| OSA
+    OSA -->|"execute javascript"| Tab
+    Tab --> JS
+    JS --> Users & Tickets & Comments & Search
+    Search -->|"JSON → formatted stdout"| JS
+    JS --> OSA --> ZD --> Skill
+
+    Skill -.->|"if Chrome unavailable"| Fallback
+
+    style Agent fill:#1a1a2e,color:#fff
+    style Chrome fill:#4285f4,color:#fff
+    style ZenAPI fill:#03363d,color:#fff
+    style macOS fill:#333,color:#fff
+    style Fallback fill:#457b9d,color:#fff
+```
+
+### How It Works
+
+1. **`zd-api.sh`** wraps all Zendesk API calls into simple CLI commands
+2. Uses **`osascript`** (macOS) to inject JavaScript into Chrome
+3. JavaScript makes **synchronous `XMLHttpRequest`** calls to Zendesk's REST API
+4. Chrome's **existing auth session** provides authentication — no API keys needed
+5. Results flow back through `osascript` stdout to the agent
+6. If Chrome is unavailable, skills fall back to **Glean MCP**
+
+### Token Optimization
+
+The `zd-api.sh` helper is optimized to minimize token consumption:
+
+```mermaid
+flowchart LR
+    subgraph Before["Before Optimization"]
+        B1["50+ raw tags\n~400 tokens"]
+        B2["3000 chars/comment\n~6,750 tokens"]
+        B3["All tags per search result\n~3,200 tokens"]
+        B4["2 tool calls/ticket"]
+    end
+
+    subgraph After["After Optimization"]
+        A1["13 filtered tag categories\n~80 tokens"]
+        A2["500 chars/comment (tunable)\n~1,125 tokens"]
+        A3["Extracted metadata only\n~600 tokens"]
+        A4["1 combined read call"]
+    end
+
+    B1 -->|"80%"| A1
+    B2 -->|"83%"| A2
+    B3 -->|"81%"| A3
+    B4 -->|"50%"| A4
+
+    style Before fill:#c1121f,color:#fff
+    style After fill:#2d6a4f,color:#fff
+```
+
+| Optimization | Technique | Savings |
+|---|---|---|
+| **Tag filtering** | Only extract 13 useful categories (product, tier, complexity, impact, spec, account, mrr, org, region, critical, hipaa, top75, replies) from 50+ raw tags | ~80% |
+| **Comment truncation** | Default 500 chars/body, configurable (pass `0` for full) | ~83% |
+| **Search compaction** | Extract key metadata fields from tags instead of dumping all | ~81% |
+| **Combined `read`** | Single call fetches ticket metadata + all comments | 50% fewer calls |
+
 ## Available Skills
+
+### Zendesk Skills (real-time via Chrome JS + Glean fallback)
+
+| Skill | Description | Trigger |
+|-------|-------------|---------|
+| `zendesk-ticket-pool` | Check assigned tickets (open/pending) with priority, product, tier, follow-up detection, stale alerts | "check my tickets", "ticket pool" |
+| `zendesk-ticket-watcher` | Autonomous background watcher — loops in a dedicated chat, detects new tickets, sends macOS notifications, investigates inline | "start the ticket watcher" |
+| `zendesk-ticket-investigator` | Deep investigation — reads content, searches similar cases, checks docs & GitHub, gathers customer context, writes report | "investigate ticket #1234567" |
+| `zendesk-ticket-tldr` | Generate structured TLDR summaries for all active tickets where you've responded — issue, investigation, next steps, need from customer | "tldr my tickets", "standup notes" |
+| `zendesk-ticket-classifier` | Classify ticket nature (bug, question, feature request, incident) | "classify ticket #1234567" |
+| `zendesk-ticket-routing` | Identify owning TS specialization, engineering team, Slack channels, CODEOWNERS | "which spec for #1234567", "route ticket" |
+| `zendesk-ticket-info-needed` | Gap analysis — reads ticket + Confluence guide, outputs what's missing + copy-paste customer message | "what info do I need for #1234567" |
+| `zendesk-ticket-repro-needed` | Evaluate if hands-on reproduction is needed — decision tree + suggested environment | "should I reproduce #1234567" |
+| `zendesk-ticket-difficulty` | Score difficulty 1-10 based on issue type, products, environment, reproduction, escalation | "difficulty for #1234567" |
+| `zendesk-ticket-eta` | Estimate time of resolution — active work, calendar time, blockers, confidence level | "ETA for #1234567" |
+| `zendesk-org-disable` | Handle org disable end-to-end — determines account type, checks parent/child, finds CSM, generates 10-step workflow | "disable org for #1234567" |
+| `zendesk-attachment-downloader` | Download ticket attachments via Chrome — lists files, triggers native downloads, extracts flares, offers analysis | "download attachments from #1234567" |
+
+### Flare Analysis Skills (local)
+
+| Skill | Description | Trigger |
+|-------|-------------|---------|
+| `flare-network-analysis` | Analyze agent flare for forwarder/intake connectivity — transaction stats, error breakdown, diagnose.log, verdict | "analyze flare network" |
+| `flare-profiling-analysis` | Analyze Go profiling (pprof) from flare — heap diffs, CPU hotspots, block/mutex contention, escalation summary | "analyze flare profiling" |
+
+### Utility Skills
 
 | Skill | Description | Trigger | Prerequisites |
 |-------|-------------|---------|---------------|
-| `zendesk-ticket-watcher` | **Autonomous background watcher** — loops in a dedicated chat, detects new Zendesk tickets via Glean, sends macOS notifications, investigates inline with batched parallel calls | "start the ticket watcher", "watch my tickets" | Glean MCP |
-| `zendesk-ticket-investigator` | Deep investigation of a specific ticket — reads content, searches similar cases, checks docs & GitHub code, gathers customer context, writes report | "investigate ticket #XYZ", "look into ZD-XYZ" | Glean MCP |
-| `zendesk-ticket-pool` | Check assigned Zendesk tickets (open/pending) with priority, follow-up detection, stale ticket alerts | "check my tickets", "ticket pool" | Glean MCP |
-| `zendesk-ticket-classifier` | Classify ticket nature (bug, question, feature request, incident) with confirmation checks | "classify ticket #XYZ", "what type of ticket" | Glean MCP |
-| `zendesk-ticket-tldr` | Generate structured TLDR summaries for all active tickets where you have responded — includes issue, investigation, next steps, need from customer | "tldr my tickets", "standup notes", "ticket summaries" | Glean MCP |
-| `zendesk-ticket-routing` | Identify which TS specialization and engineering team owns a ticket topic | "which spec", "route ticket" | Glean MCP |
-| `zendesk-ticket-info-needed` | Estimate what customer info is still missing — reads ticket + Confluence troubleshooting guide, outputs gap analysis + copy-paste customer message | "what info do I need for #XYZ", "what to ask for ZD-XYZ" | Glean MCP |
-| `zendesk-ticket-repro-needed` | Evaluate whether a ticket needs hands-on reproduction — decision tree + suggested environment type (minikube, docker, cloud sandbox) | "should I reproduce #XYZ", "repro needed for ZD-XYZ" | Glean MCP |
-| `zendesk-ticket-difficulty` | Score ticket difficulty 1-10 based on issue type, product count, environment complexity, reproduction need, and escalation likelihood | "difficulty for #XYZ", "how hard is #XYZ" | Glean MCP |
-| `zendesk-ticket-eta` | Estimate time of resolution — active work time, calendar time, time to next response, with blockers flagged and confidence level. Calibrated by similar resolved tickets | "ETA for #XYZ", "how long for ZD-XYZ" | Glean MCP |
-| `zendesk-org-disable` | Handle org disable requests end-to-end — determines account type (free/trial/paying), checks org structure (parent/child), identifies CSM, generates 10-step workflow with copy-paste Zendesk notes and customer messages | "disable org for #XYZ", "close account ZD-XYZ", auto-triggers on `account_disable` tickets | Glean MCP |
-| `flare-network-analysis` | Analyze a locally extracted Datadog Agent flare for forwarder/intake connectivity issues — produces structured summary with transaction stats, error breakdown, diagnose.log results, and verdict (Healthy/Degraded/Critical) | "analyze flare network", "flare connectivity", "forwarder analysis" | Local flare directory |
-| `flare-profiling-analysis` | Analyze Go profiling data (pprof) from an agent flare — heap diffs, CPU hotspots, block/mutex contention, with customer message and JIRA-ready escalation summary | "analyze flare profiling", "flare memory leak", "pprof analysis", "agent profiling" | Local flare directory, Go installed |
-| `snagit-screen-record` | Start Snagit video capture via text or voice command | "start recording", "record screen" | Snagit 2024, Accessibility permissions |
-| `text-shortcut-manager` | Scan Cursor transcripts for recurring phrases, create espanso text shortcuts automatically | "scan my patterns", "add shortcut" | espanso (`brew install espanso`) |
+| `snagit-screen-record` | Start Snagit video capture via text or voice | "start recording" | Snagit 2024 |
+| `text-shortcut-manager` | Scan transcripts for recurring phrases, create espanso shortcuts | "scan my patterns" | espanso |
+
+### Shared
+
+| Path | Description |
+|------|-------------|
+| `_shared/zd-api.sh` | Centralized Chrome JS bridge — all Zendesk API calls in one script (see `_shared/README.md` for full docs) |
+
+## Zendesk Ticket Pipeline
+
+```mermaid
+flowchart TD
+    A["zd-api.sh search\n(real-time)"] --> B[zendesk-ticket-watcher]
+    B -->|"compare with _processed.log"| C{New tickets?}
+    C -->|No| S["sleep 300 → loop"]
+    C -->|"Yes"| N["macOS notification"]
+
+    N --> Reply{"zd-api.sh replied"}
+    Reply -->|"REPLIED"| Skip["Skip (already handled)"]
+    Reply -->|"NOT_REPLIED"| Inv["Inline Investigation"]
+
+    subgraph Investigation["Batched Inline Investigation"]
+        R1["Round 1: Read ALL tickets\nzd-api.sh read"] --> R2["Round 2: Search ALL in parallel\nGlean: zendesk + confluence + docs + github"]
+        R2 --> R3["Round 3: Write ALL reports"]
+    end
+
+    Inv --> R1
+    R3 --> F["investigations/ZD-*.md"]
+    F --> S
+    Skip --> S
+    S --> A
+
+    DL["zendesk-attachment-downloader\nzd-api.sh attachments + download"] -.->|"integrated in"| Inv
+    FA["flare-network-analysis\nflare-profiling-analysis"] -.->|"after flare extraction"| Inv
+
+    G["zendesk-ticket-pool\nzd-api.sh search"] -.->|standalone| H["What's on my plate?"]
+    T["zendesk-ticket-tldr\nzd-api.sh read + replied"] -.->|standalone| T1["investigations/TLDR-all.md"]
+    I["zendesk-ticket-info-needed\nzd-api.sh read"] -.->|standalone| I1["What info is missing?"]
+    J["zendesk-ticket-repro-needed\nzd-api.sh read"] -.->|standalone| J1["Should I reproduce?"]
+    K["zendesk-ticket-difficulty\nzd-api.sh read"] -.->|standalone| K1["Score 1-10"]
+    L["zendesk-ticket-eta\nzd-api.sh read"] -.->|standalone| L1["Time estimate"]
+    CL["zendesk-ticket-classifier\nzd-api.sh read"] -.->|standalone| CL1["Bug/question/feature?"]
+    RT["zendesk-ticket-routing\nzd-api.sh ticket"] -.->|standalone| RT1["Which spec + team?"]
+    OD["zendesk-org-disable\nzd-api.sh read"] -.->|standalone| OD1["Disable workflow"]
+    K1 -.->|"feeds"| L
+
+    style A fill:#e63946,color:#fff
+    style B fill:#4ecdc4,color:#fff
+    style C fill:#ff8a5c,color:#fff
+    style N fill:#ff8a5c,color:#fff
+    style Investigation fill:#1a1a2e,color:#fff
+    style R1 fill:#45b7d1,color:#fff
+    style R2 fill:#45b7d1,color:#fff
+    style R3 fill:#45b7d1,color:#fff
+    style F fill:#ffd93d,color:#333
+    style S fill:#96ceb4,color:#fff
+    style DL fill:#e63946,color:#fff
+    style FA fill:#c9b1ff,color:#fff
+```
+
+| Skill | Answers | Data Source |
+|-------|---------|-------------|
+| `zendesk-ticket-pool` | "What's on my plate right now?" | `zd-api.sh search` (real-time) |
+| `zendesk-ticket-watcher` | "Is there a new ticket?" | `zd-api.sh search` + `replied` |
+| `zendesk-ticket-investigator` | "What's the context & similar cases?" | `zd-api.sh read` + Glean search |
+| `zendesk-ticket-tldr` | "What's the full status of my tickets?" | `zd-api.sh read` + `replied` |
+| `zendesk-ticket-classifier` | "What kind of ticket is it?" | `zd-api.sh read` |
+| `zendesk-ticket-routing` | "Who handles it?" | `zd-api.sh ticket` (tags) |
+| `zendesk-ticket-info-needed` | "What info is missing?" | `zd-api.sh read 0` (full) |
+| `zendesk-ticket-repro-needed` | "Should I reproduce?" | `zd-api.sh read` |
+| `zendesk-ticket-difficulty` | "How hard? (1-10)" | `zd-api.sh read` |
+| `zendesk-ticket-eta` | "How long?" | `zd-api.sh read 0` (full) |
+| `zendesk-org-disable` | "How do I disable this org?" | `zd-api.sh read 0` (full) |
+| `zendesk-attachment-downloader` | "Download the flare" | `zd-api.sh attachments` + `download` |
+
+Each skill works **standalone** or as part of the pipeline. No cron, no extensions — just agents following instructions.
+
+## Key Features & Design Decisions
+
+### Real-Time Zendesk Access via Chrome JS
+- **Problem**: Glean MCP indexes Zendesk data with up to 30 minutes latency, making real-time ticket detection unreliable.
+- **Solution**: Inject JavaScript into Chrome via `osascript` to call Zendesk REST API using the browser's existing authenticated session. No API keys needed.
+- **Quirk**: Requires Chrome's "Allow JavaScript from Apple Events" setting (View > Developer menu). This is a one-time toggle.
+
+### Dynamic Agent Identity
+- **Problem**: Hardcoding agent names breaks portability and leaks PII.
+- **Solution**: `zd-api.sh me` calls `/api/v2/users/me.json` to dynamically resolve the current agent's ID, name, and email. All skills use this instead of hardcoded values.
+
+### Token-Optimized Output
+- **Problem**: Raw Zendesk API responses dump 50+ tags per ticket and full comment bodies, consuming excessive context window tokens.
+- **Solution**: `zd-api.sh` filters tags to only 13 useful categories and truncates comment bodies to 500 chars by default (configurable: pass `0` for full body when deep reading is needed).
+
+### Automated Attachment Downloads
+- **Problem**: Glean MCP cannot download binary attachments (flares, screenshots). Agents needed manual intervention.
+- **Solution**: `zendesk-attachment-downloader` uses Chrome DOM manipulation — creates a `<a download>` element and clicks it programmatically — to trigger native browser downloads. Works for any attachment type.
+- **Quirk**: Downloads go to Chrome's default download directory (`~/Downloads/`). The skill auto-extracts `.zip` flares and offers to run `flare-network-analysis` or `flare-profiling-analysis`.
+
+### Factorized Chrome JS Helper (`zd-api.sh`)
+- **Problem**: Each skill had 20-40 lines of inline `osascript` + JavaScript, duplicated across 12 prompt files.
+- **Solution**: Centralized `_shared/zd-api.sh` script with 9 commands (`tab`, `me`, `ticket`, `comments`, `read`, `replied`, `search`, `attachments`, `download`). Skill prompts now use 1-line calls.
+- **Quirk**: Uses synchronous `XMLHttpRequest` (deprecated in modern browsers but required here because `osascript` cannot handle async callbacks).
+
+### Combined `read` Command
+- **Problem**: Reading a ticket required two separate calls (`ticket` + `comments`), doubling tool call overhead.
+- **Solution**: `zd-api.sh read <ID>` makes both API calls in a single Chrome JS execution and returns combined output.
+
+### Glean as Fallback, Not Primary
+- **Problem**: Glean is powerful for cross-system search but slow for real-time Zendesk data.
+- **Solution**: Chrome JS is the primary data source for all Zendesk operations. Glean is used for:
+  - Fallback when Chrome is unavailable
+  - Cross-system searches (similar tickets, Confluence docs, Salesforce customer context, GitHub code)
+  - Deep investigation where broader context is needed
+
+### Background Watcher Without Infrastructure
+- **Problem**: Traditional ticket monitoring requires cron jobs, extensions, or external services.
+- **Solution**: `zendesk-ticket-watcher` runs as a looping agent in a dedicated Cursor chat — no cron, no launchd, no browser extensions. Just an AI agent following a prompt that says "loop forever, check every 5 minutes."
+- **Quirk**: Investigations run inline (no subagents) because Cursor subagents require manual "Allow" clicks, which defeats background automation.
+
+### Replied Detection for Smart Filtering
+- **Problem**: TLDR and watcher skills would process tickets the agent hasn't touched yet, wasting time.
+- **Solution**: `zd-api.sh replied <ID>` checks if the current agent (via `me.json`) has posted any comment on the ticket. Returns `REPLIED` or `NOT_REPLIED`. Skills use this to skip unhandled tickets.
 
 ## Installation
 
@@ -44,92 +272,19 @@ Cursor automatically discovers skills from `~/.cursor/skills/*/SKILL.md`.
 
 - **Cursor IDE** with Agent mode enabled
 - **macOS** (skills use AppleScript and macOS-specific paths)
-- **Glean MCP** configured in Cursor (for all `zendesk-*` skills)
+- **Google Chrome** with a Zendesk tab open and "Allow JavaScript from Apple Events" enabled
+- **Glean MCP** configured in Cursor (fallback for Zendesk + cross-system searches)
 - **espanso** (`brew install espanso`) for `text-shortcut-manager`
 - **Snagit 2024** for `snagit-screen-record`
 
-## How Skills Work
+### One-Time Chrome Setup
 
-Skills are markdown instruction files that the AI agent reads when it determines they're relevant. They provide:
-
-1. **Step-by-step workflows** - What tools to call, in what order
-2. **Data extraction patterns** - How to parse results
-3. **Output formatting** - Consistent, actionable presentation
-4. **Domain knowledge** - TSE-specific context the AI wouldn't know
-
-## Zendesk Ticket Pipeline
-
-The Zendesk skills work together as a full ticket pipeline:
-
-```mermaid
-flowchart TD
-    A[Glean MCP: search open + pending tickets] --> B[zendesk-ticket-watcher]
-    B -->|compare with _processed.log| C{New tickets?}
-    C -->|No| S[Sleep 5 min → loop]
-    C -->|Yes: 1 or more| N[macOS Notification per ticket]
-    N --> R1
-
-    subgraph Batched Inline Investigation
-        R1[Round 1: Read ALL tickets in parallel] --> R2[Round 2: Search ALL in parallel]
-        R2 --> R3[Round 3: Write ALL reports]
-    end
-
-    R2 -->|per ticket x4| R2D[zendesk + confluence + docs + github]
-    R3 --> F1[investigations/ZD-A.md]
-    R3 --> F2[investigations/ZD-B.md]
-    R3 --> F3[investigations/ZD-C.md]
-
-    S --> A
-
-    G[zendesk-ticket-pool] -.->|standalone| H[What's on my plate?]
-    T[zendesk-ticket-tldr] -.->|standalone| T1[TLDR summaries for all active tickets]
-    T1 --> T2[investigations/TLDR-all.md]
-    I[zendesk-ticket-info-needed] -.->|standalone| I1[What info is missing?]
-    J[zendesk-ticket-repro-needed] -.->|standalone or after investigator| J1[Should I reproduce this?]
-    K[zendesk-ticket-difficulty] -.->|standalone or after pool| K1[How hard is this? 1-10]
-    L[zendesk-ticket-eta] -.->|standalone or after pool| L1[How long will this take?]
-    K1 -.->|feeds| L
-
-    style A fill:#4ecdc4,color:#fff
-    style B fill:#4ecdc4,color:#fff
-    style C fill:#ff8a5c,color:#fff
-    style N fill:#ff8a5c,color:#fff
-    style R1 fill:#45b7d1,color:#fff
-    style R2 fill:#45b7d1,color:#fff
-    style R3 fill:#45b7d1,color:#fff
-    style R2D fill:#45b7d1,color:#fff
-    style F1 fill:#ffd93d,color:#333
-    style F2 fill:#ffd93d,color:#333
-    style F3 fill:#ffd93d,color:#333
-    style S fill:#96ceb4,color:#fff
-    style G fill:#96ceb4,color:#fff
-    style T fill:#b19cd9,color:#fff
-    style T2 fill:#ffd93d,color:#333
-    style I fill:#e8a87c,color:#fff
-    style I1 fill:#e8a87c,color:#fff
-    style J fill:#d4a5a5,color:#fff
-    style J1 fill:#d4a5a5,color:#fff
-    style K fill:#c9b1ff,color:#fff
-    style K1 fill:#c9b1ff,color:#fff
-    style L fill:#ff6b6b,color:#fff
-    style L1 fill:#ff6b6b,color:#fff
+```bash
+# Enable JavaScript from Apple Events (requires Chrome restart)
+defaults write com.google.Chrome AppleScriptEnabled -bool true
 ```
 
-| Skill | Answers | Standalone? |
-|-------|---------|-------------|
-| `zendesk-ticket-watcher` | "Is there a new ticket?" | Yes — loops in dedicated chat |
-| `zendesk-ticket-classifier` | "What kind of ticket is it?" | Yes — "classify ticket #XYZ" |
-| `zendesk-ticket-investigator` | "What's the context & similar cases?" | Yes — "investigate ticket #XYZ" |
-| `zendesk-ticket-routing` | "Who handles it?" | Yes — "which spec for ticket #XYZ" |
-| `zendesk-ticket-tldr` | "What's the full status of my tickets?" | Yes — "tldr my tickets" |
-| `zendesk-ticket-pool` | "What's on my plate right now?" | Yes — "check my tickets" |
-| `zendesk-ticket-info-needed` | "What info is missing from the customer?" | Yes — "what info do I need for #XYZ" |
-| `zendesk-ticket-repro-needed` | "Should I spin up an environment to test this?" | Yes — "should I reproduce #XYZ" |
-| `zendesk-ticket-difficulty` | "How hard is this ticket? (1-10)" | Yes — "difficulty for #XYZ" |
-| `zendesk-ticket-eta` | "How long will this take?" | Yes — "ETA for #XYZ" |
-| `zendesk-org-disable` | "How do I disable this org?" | Yes — "disable org for #XYZ", auto-triggers on account_disable tickets |
-
-Each skill works **standalone** or as part of the pipeline. No cron, no extensions — just agents following instructions.
+Then in Chrome: **View > Developer > Allow JavaScript from Apple Events** (check it).
 
 ## Syncing Local <-> GitHub
 
