@@ -1,6 +1,6 @@
 ---
 name: zendesk-ticket-tldr
-description: Generate TLDR summaries for all assigned tickets (open, pending, on hold) where you have already responded. Use when the user asks for ticket summaries, TLDR, status update, standup notes, or handoff notes.
+description: Generate TLDR summaries for all assigned tickets (open, pending, on hold) where you have already responded. Uses Chrome JS (real-time) as primary, Glean MCP as fallback. Use when the user asks for ticket summaries, TLDR, status update, standup notes, or handoff notes.
 ---
 
 # Ticket TLDR Generator
@@ -50,11 +50,17 @@ What needs to happen next — waiting on customer, escalation, team question.
 What information or action is needed from the customer before proceeding.
 ```
 
+## Prerequisites
+
+- **macOS** with `osascript`
+- **Google Chrome** running with a tab open on `zendesk.com`
+- **"Allow JavaScript from Apple Events"** enabled in Chrome (one-time setup)
+
 ## Filter Logic
 
 - **Include:** tickets with status open, pending, or on hold assigned to you
 - **Exclude:** tickets where you have NOT yet posted any public reply (newly assigned, untouched)
-- **How to detect:** Read ticket content via Glean — if no message from "Alexandre" is found in the conversation, skip it
+- **How to detect:** Check ticket comments via Chrome JS (primary) or Glean (fallback) — if no message from the current user is found, skip it
 
 ## Integration
 

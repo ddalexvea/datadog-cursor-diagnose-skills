@@ -2,6 +2,15 @@ Estimate the time of resolution for Zendesk ticket #{{TICKET_ID}}.
 
 ## Step 1: Read the full ticket
 
+### Primary: Chrome JS (real-time)
+
+```bash
+~/.cursor/skills/_shared/zd-api.sh read {{TICKET_ID}} 0
+```
+
+Returns metadata (filtered tags) + all comments (full body). Tags include product, tier, complexity, impact — useful for scoring.
+
+### Fallback: Glean MCP
 ```
 Tool: user-glean_ai-code-read_document
 urls: ["https://datadog.zendesk.com/agent/tickets/{{TICKET_ID}}"]

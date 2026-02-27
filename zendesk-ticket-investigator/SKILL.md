@@ -36,7 +36,7 @@ Then:
 
 ## Investigation Steps
 
-1. **Read ticket** — Full content from Zendesk via Glean (`user-glean_ai-code-read_document`)
+1. **Read ticket** — Full content via Chrome JS (real-time) or Glean fallback (`user-glean_ai-code-read_document`)
 2. **Download attachments** — List and download attachments via `zendesk-attachment-downloader` (flares, logs, screenshots). If a flare is found, extract and run appropriate analysis skills.
 3. **Similar tickets** — Search Zendesk for resolved tickets with matching symptoms
 4. **Internal docs** — Search Confluence for runbooks, troubleshooting guides, known issues

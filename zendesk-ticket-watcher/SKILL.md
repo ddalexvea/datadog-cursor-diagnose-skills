@@ -1,17 +1,24 @@
 ---
 name: zendesk-ticket-watcher
-description: Background ticket watcher that monitors Zendesk for new assignments, investigates them inline, and sends macOS notifications. Use when the user mentions ticket watcher, background investigation, auto-investigate, or ticket monitoring.
+description: Background ticket watcher that monitors Zendesk for new assignments, investigates them inline, and sends macOS notifications. Uses Chrome JS (real-time) as primary detection method, Glean MCP as fallback. Use when the user mentions ticket watcher, background investigation, auto-investigate, or ticket monitoring.
 ---
 
 # Ticket Watcher
 
-Autonomous background watcher that runs in a dedicated Cursor chat, checking Zendesk for new ticket assignments via Glean MCP. When new tickets are found, it sends macOS notifications and investigates each ticket inline (no subagents, no approval clicks needed).
+Autonomous background watcher that runs in a dedicated Cursor chat, checking Zendesk for new ticket assignments via Chrome JS execution (real-time, no delay) or Glean MCP (fallback). When new tickets are found, it sends macOS notifications and investigates each ticket inline (no subagents, no approval clicks needed).
+
+## Prerequisites
+
+- **macOS** with `osascript`
+- **Google Chrome** running with a tab open on `zendesk.com`
+- **"Allow JavaScript from Apple Events"** enabled in Chrome (View > Developer > Allow JavaScript from Apple Events) — one-time setup
+
 ## Architecture
 
 ```
-Dedicated Agent Chat (looping) → Glean MCP → detect new tickets
-                                           → macOS notification
-                                           → inline investigation → reports
+Dedicated Agent Chat (looping) → Chrome JS (real-time) → detect new tickets
+                                 ↓ fallback: Glean MCP    → macOS notification
+                                                           → inline investigation → reports
 ```
 
 No cron, no launchd, no extensions. Just an agent following instructions in its own chat.

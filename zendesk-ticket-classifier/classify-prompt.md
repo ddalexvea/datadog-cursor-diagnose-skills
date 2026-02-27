@@ -1,6 +1,16 @@
 Classify Zendesk ticket #{{TICKET_ID}}.
 
 ## Step 1: Read the ticket
+
+### Primary: Chrome JS (real-time)
+
+```bash
+~/.cursor/skills/_shared/zd-api.sh read {{TICKET_ID}}
+```
+
+Returns metadata (filtered tags including product, impact, complexity) + comments (500 chars each — enough for signal detection).
+
+### Fallback: Glean MCP
 - Tool: user-glean_ai-code-read_document
 - urls: ["https://datadog.zendesk.com/agent/tickets/{{TICKET_ID}}"]
 

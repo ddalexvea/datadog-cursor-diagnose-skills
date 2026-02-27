@@ -2,7 +2,19 @@ Generate TLDR summaries for all active Zendesk tickets assigned to me.
 
 ## Step 1: Fetch all assigned tickets
 
-Run BOTH searches in parallel:
+### Primary: Chrome JS (real-time)
+
+Run BOTH searches:
+```bash
+~/.cursor/skills/_shared/zd-api.sh search "type:ticket assignee:me (status:new OR status:open)"
+~/.cursor/skills/_shared/zd-api.sh search "type:ticket assignee:me status:pending"
+```
+
+Output includes: ID | status | priority | product | tier | complexity | replies | updated | subject
+
+### Fallback: Glean MCP
+
+If Chrome is unavailable, use Glean:
 
 Search 1 — Open tickets:
 - Tool: user-glean_ai-code-search
@@ -18,17 +30,32 @@ Search 2 — Pending tickets:
 - dynamic_search_result_filters: assignee:Alexandre VEA|status:pending
 - exhaustive: true
 
-## Step 2: Read ALL ticket contents in parallel
+**Note:** Glean data may be up to 30 minutes stale.
 
-For ALL tickets found, read them in a single batch:
+## Step 2: Read ALL ticket contents
+
+### Primary: Chrome JS
+
+For each ticket, read metadata + comments and check if replied:
+```bash
+~/.cursor/skills/_shared/zd-api.sh read {TICKET_ID}
+~/.cursor/skills/_shared/zd-api.sh replied {TICKET_ID}
+```
+
+Default 500 chars/comment is usually enough for TLDR. Use `0` for full body if needed.
+
+### Fallback: Glean MCP
+
+If Chrome is unavailable, read all tickets in a single batch:
 - Tool: user-glean_ai-code-read_document
 - urls: ["https://datadog.zendesk.com/agent/tickets/ID_1", "https://datadog.zendesk.com/agent/tickets/ID_2", ...]
 
 ## Step 3: Filter — skip tickets where I haven't responded
 
-For each ticket, scan the conversation for messages from "Alexandre" (case-insensitive).
-- If NO message from Alexandre is found → **SKIP** this ticket (newly assigned, not yet answered)
-- If at least one message from Alexandre is found → **INCLUDE** in TLDR
+- `NOT_REPLIED` → **SKIP** this ticket (newly assigned, not yet answered)
+- `REPLIED` → **INCLUDE** in TLDR
+
+For Glean fallback: scan the conversation for messages from "Alexandre" (case-insensitive).
 
 ## Step 4: Generate TLDR for each included ticket
 
@@ -86,12 +113,12 @@ After writing the file, display a brief table:
 
 | Ticket | Subject | Status | TLDR |
 |--------|---------|--------|------|
-| #ID | subject | open/pending | ✅ generated |
-| #ID | subject | open | ⏭️ skipped (no response) |
+| #ID | subject | open/pending | generated |
+| #ID | subject | open | skipped (no response) |
 
 ## Single ticket mode
 
 If the user asks for a TLDR of a specific ticket (e.g., "tldr ticket #2514617"):
-1. Read just that ticket via Glean
+1. Read just that ticket: `~/.cursor/skills/_shared/zd-api.sh read {TICKET_ID} 0`
 2. Generate the TLDR (no filter — always generate even if not responded)
 3. Display inline (don't write to file unless asked)

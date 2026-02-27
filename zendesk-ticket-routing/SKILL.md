@@ -8,9 +8,25 @@ description: Identify which TS specialization and engineering team owns a ticket
 Given a Zendesk ticket (URL, ID, or description), identify the owning TS specialization,
 engineering team, relevant Slack channels, and CODEOWNERS paths.
 
+## Prerequisites
+
+- **macOS** with `osascript`
+- **Google Chrome** running with a tab open on `zendesk.com`
+- **"Allow JavaScript from Apple Events"** enabled in Chrome (one-time setup)
+
 ## Step 1: Gather ticket context
 
 **If given a Zendesk ticket URL or ID:**
+
+### Primary: Chrome JS (real-time) — best for tags
+
+```bash
+~/.cursor/skills/_shared/zd-api.sh ticket {TICKET_ID}
+```
+
+Returns metadata with filtered tags including `product` (from `pt_product_type:*`) which is the primary routing signal, plus `spec`, `tier`, `account`, etc.
+
+### Fallback: Glean MCP
 ```
 Tool: user-glean_ai-code-read_document
 urls: ["https://datadog.zendesk.com/agent/tickets/{TICKET_ID}"]

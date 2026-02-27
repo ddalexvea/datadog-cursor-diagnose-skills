@@ -2,6 +2,15 @@ Evaluate whether Zendesk ticket #{{TICKET_ID}} needs reproduction.
 
 ## Step 1: Read the ticket
 
+### Primary: Chrome JS (real-time)
+
+```bash
+~/.cursor/skills/_shared/zd-api.sh read {{TICKET_ID}}
+```
+
+Returns metadata (filtered tags including product, complexity) + comments (500 chars — enough for repro assessment).
+
+### Fallback: Glean MCP
 ```
 Tool: user-glean_ai-code-read_document
 urls: ["https://datadog.zendesk.com/agent/tickets/{{TICKET_ID}}"]

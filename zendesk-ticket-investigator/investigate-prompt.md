@@ -1,7 +1,18 @@
 Investigate Zendesk ticket #{{TICKET_ID}} (Subject: {{SUBJECT}}).
 
 ## Step 1: Read the ticket
-Use Glean to read the full ticket content:
+
+### Primary: Chrome JS (real-time)
+
+```bash
+~/.cursor/skills/_shared/zd-api.sh read {{TICKET_ID}} 0
+```
+
+This returns ticket metadata (filtered tags) + all comments (full body with `0`). For triage-only, omit `0` to get 500-char truncated comments.
+
+### Fallback: Glean MCP
+
+If Chrome is unavailable (ERROR output):
 - Tool: user-glean_ai-code-read_document
 - urls: ["https://datadog.zendesk.com/agent/tickets/{{TICKET_ID}}"]
 

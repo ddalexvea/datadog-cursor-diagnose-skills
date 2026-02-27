@@ -2,6 +2,15 @@ Estimate the difficulty of Zendesk ticket #{{TICKET_ID}} on a 1-10 scale.
 
 ## Step 1: Read the ticket
 
+### Primary: Chrome JS (real-time)
+
+```bash
+~/.cursor/skills/_shared/zd-api.sh read {{TICKET_ID}}
+```
+
+Returns metadata (filtered tags including complexity, product, impact) + comments (500 chars each — enough for difficulty assessment).
+
+### Fallback: Glean MCP
 ```
 Tool: user-glean_ai-code-read_document
 urls: ["https://datadog.zendesk.com/agent/tickets/{{TICKET_ID}}"]
