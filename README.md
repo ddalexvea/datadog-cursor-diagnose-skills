@@ -15,16 +15,16 @@ All `zendesk-*` skills access Zendesk data in **real-time** through Chrome's aut
 ```mermaid
 flowchart LR
     subgraph Agent["Cursor Agent"]
-        Skill["zendesk-* skill\n(prompt.md)"]
+        Skill["zendesk-* skill<br>(prompt.md)"]
         ZD["_shared/zd-api.sh"]
     end
 
     subgraph macOS["macOS"]
-        OSA["osascript\n(AppleScript)"]
+        OSA["osascript<br>(AppleScript)"]
     end
 
     subgraph Chrome["Google Chrome"]
-        Tab["Zendesk Tab\n(authenticated)"]
+        Tab["Zendesk Tab<br>(authenticated)"]
         JS["sync XMLHttpRequest"]
     end
 
@@ -74,16 +74,16 @@ The `zd-api.sh` helper is optimized to minimize token consumption:
 ```mermaid
 flowchart LR
     subgraph Before["Before Optimization"]
-        B1["50+ raw tags\n~400 tokens"]
-        B2["3000 chars/comment\n~6,750 tokens"]
-        B3["All tags per search result\n~3,200 tokens"]
+        B1["50+ raw tags<br>~400 tokens"]
+        B2["3000 chars/comment<br>~6,750 tokens"]
+        B3["All tags per search result<br>~3,200 tokens"]
         B4["2 tool calls/ticket"]
     end
 
     subgraph After["After Optimization"]
-        A1["13 filtered tag categories\n~80 tokens"]
-        A2["500 chars/comment (tunable)\n~1,125 tokens"]
-        A3["Extracted metadata only\n~600 tokens"]
+        A1["13 filtered tag categories<br>~80 tokens"]
+        A2["500 chars/comment (tunable)<br>~1,125 tokens"]
+        A3["Extracted metadata only<br>~600 tokens"]
         A4["1 combined read call"]
     end
 
@@ -146,7 +146,7 @@ flowchart LR
 
 ```mermaid
 flowchart TD
-    A["zd-api.sh search\n(real-time)"] --> B[zendesk-ticket-watcher]
+    A["zd-api.sh search<br>(real-time)"] --> B[zendesk-ticket-watcher]
     B -->|"compare with _processed.log"| C{New tickets?}
     C -->|No| S["sleep 300 → loop"]
     C -->|"Yes"| N["macOS notification"]
@@ -156,7 +156,7 @@ flowchart TD
     Reply -->|"NOT_REPLIED"| Inv["Inline Investigation"]
 
     subgraph Investigation["Batched Inline Investigation"]
-        R1["Round 1: Read ALL tickets\nzd-api.sh read"] --> R2["Round 2: Search ALL in parallel\nGlean: zendesk + confluence + docs + github"]
+        R1["Round 1: Read ALL tickets<br>zd-api.sh read"] --> R2["Round 2: Search ALL in parallel<br>Glean: zendesk + confluence + docs + github"]
         R2 --> R3["Round 3: Write ALL reports"]
     end
 
@@ -166,18 +166,18 @@ flowchart TD
     Skip --> S
     S --> A
 
-    DL["zendesk-attachment-downloader\nzd-api.sh attachments + download"] -.->|"integrated in"| Inv
-    FA["flare-network-analysis\nflare-profiling-analysis"] -.->|"after flare extraction"| Inv
+    DL["zendesk-attachment-downloader<br>zd-api.sh attachments + download"] -.->|"integrated in"| Inv
+    FA["flare-network-analysis<br>flare-profiling-analysis"] -.->|"after flare extraction"| Inv
 
-    G["zendesk-ticket-pool\nzd-api.sh search"] -.->|standalone| H["What's on my plate?"]
-    T["zendesk-ticket-tldr\nzd-api.sh read + replied"] -.->|standalone| T1["investigations/TLDR-all.md"]
-    I["zendesk-ticket-info-needed\nzd-api.sh read"] -.->|standalone| I1["What info is missing?"]
-    J["zendesk-ticket-repro-needed\nzd-api.sh read"] -.->|standalone| J1["Should I reproduce?"]
-    K["zendesk-ticket-difficulty\nzd-api.sh read"] -.->|standalone| K1["Score 1-10"]
-    L["zendesk-ticket-eta\nzd-api.sh read"] -.->|standalone| L1["Time estimate"]
-    CL["zendesk-ticket-classifier\nzd-api.sh read"] -.->|standalone| CL1["Bug/question/feature?"]
-    RT["zendesk-ticket-routing\nzd-api.sh ticket"] -.->|standalone| RT1["Which spec + team?"]
-    OD["zendesk-org-disable\nzd-api.sh read"] -.->|standalone| OD1["Disable workflow"]
+    G["zendesk-ticket-pool<br>zd-api.sh search"] -.->|standalone| H["What's on my plate?"]
+    T["zendesk-ticket-tldr<br>zd-api.sh read + replied"] -.->|standalone| T1["investigations/TLDR-all.md"]
+    I["zendesk-ticket-info-needed<br>zd-api.sh read"] -.->|standalone| I1["What info is missing?"]
+    J["zendesk-ticket-repro-needed<br>zd-api.sh read"] -.->|standalone| J1["Should I reproduce?"]
+    K["zendesk-ticket-difficulty<br>zd-api.sh read"] -.->|standalone| K1["Score 1-10"]
+    L["zendesk-ticket-eta<br>zd-api.sh read"] -.->|standalone| L1["Time estimate"]
+    CL["zendesk-ticket-classifier<br>zd-api.sh read"] -.->|standalone| CL1["Bug/question/feature?"]
+    RT["zendesk-ticket-routing<br>zd-api.sh ticket"] -.->|standalone| RT1["Which spec + team?"]
+    OD["zendesk-org-disable<br>zd-api.sh read"] -.->|standalone| OD1["Disable workflow"]
     K1 -.->|"feeds"| L
 
     style A fill:#e63946,color:#fff

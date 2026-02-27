@@ -60,11 +60,11 @@ flowchart TD
 
     tab -->|"Find Zendesk tab index"| T1["osascript → tab index"]
     me -->|"GET /api/v2/users/me.json"| T2["id | name | email"]
-    ticket -->|"GET /api/v2/tickets/ID.json"| T3["subject, status, priority\n+ filtered tags"]
-    comments -->|"GET /api/v2/tickets/ID/comments.json"| T4["[n] AUTHOR | date\nbody (truncated)"]
-    read -->|"ticket + comments combined"| T5["metadata + all comments\nin ONE call"]
+    ticket -->|"GET /api/v2/tickets/ID.json"| T3["subject, status, priority<br>+ filtered tags"]
+    comments -->|"GET /api/v2/tickets/ID/comments.json"| T4["[n] AUTHOR | date<br>body (truncated)"]
+    read -->|"ticket + comments combined"| T5["metadata + all comments<br>in ONE call"]
     replied -->|"me.json + comments.json"| T6["REPLIED / NOT_REPLIED"]
-    search -->|"GET /api/v2/search.json"| T7["id | status | priority\nproduct | tier | complexity"]
+    search -->|"GET /api/v2/search.json"| T7["id | status | priority<br>product | tier | complexity"]
     attachments -->|"comments.json → attachments[]"| T8["filename | size | type | url"]
     download -->|"DOM: createElement('a').click()"| T9["triggers Chrome download"]
 
@@ -78,17 +78,17 @@ flowchart TD
 ```mermaid
 flowchart TD
     subgraph Before["❌ Before — Raw Output"]
-        B_tags["Tags: 50+ tags\nauto_bb, bb_notified, bulk_ccs_disabled,\npt_product_type:dbm, account_type:prospect,\nt_not_available, mrr_not_available_in_zendesk,\norg:1200625669, org_region_north_america_west,\nspec_dbm_ticket, ticket_complexity_low,\nimpact_general, 1_agent_replies, ...\n\n~400 tokens"]
-        B_comments["Comments: 3000 chars/each\n9 comments × 3000 chars\n= ~27,000 chars\n\n~6,750 tokens"]
-        B_search["Search: all tags per ticket\n8 tickets × 50 tags\n= ~400 tags dumped\n\n~3,200 tokens"]
-        B_calls["2 tool calls per ticket\nticket() + comments()"]
+        B_tags["Tags: 50+ raw tags<br>~400 tokens"]
+        B_comments["Comments: 3000 chars/each<br>~6,750 tokens"]
+        B_search["Search: all tags per ticket<br>~3,200 tokens"]
+        B_calls["2 tool calls per ticket<br>ticket() + comments()"]
     end
 
     subgraph After["✅ After — Filtered Output"]
-        A_tags["Tags: 7 key fields\nproduct:dbm, account:prospect,\ntier:t_not_available, complexity:low,\nimpact:general, org_id:1200625669,\nregion:north_america_west\n\n~80 tokens"]
-        A_comments["Comments: 500 chars/each\n(tunable, 0 = full)\n9 × 500 = ~4,500 chars\n\n~1,125 tokens"]
-        A_search["Search: extracted metadata\n8 × 7 fields\nid|status|priority|product|tier|complexity|updated|subject\n\n~600 tokens"]
-        A_calls["1 tool call per ticket\nread() = ticket + comments"]
+        A_tags["13 filtered categories<br>~80 tokens"]
+        A_comments["500 chars/comment (tunable)<br>~1,125 tokens"]
+        A_search["Extracted metadata only<br>~600 tokens"]
+        A_calls["1 combined read call"]
     end
 
     B_tags -->|"80% reduction"| A_tags
@@ -113,26 +113,26 @@ flowchart LR
     Raw --> Flags
 
     subgraph Routing["Routing & Triage"]
-        product["product\npt_product_type:*"]
-        spec["spec\nspec_*_ticket"]
-        subcategory["subcategory\npt_*_category:*"]
+        product["product<br>pt_product_type:*"]
+        spec["spec<br>spec_*_ticket"]
+        subcategory["subcategory<br>pt_*_category:*"]
     end
 
     subgraph Business["Business Context"]
-        account["account\naccount_type:*"]
-        tier["tier\nt0/t1/t2/t3/t4"]
-        mrr["mrr\nmrr_*"]
-        org_id["org_id\norg:*"]
-        region["region\norg_region_*"]
+        account["account<br>account_type:*"]
+        tier["tier<br>t0/t1/t2/t3/t4"]
+        mrr["mrr<br>mrr_*"]
+        org_id["org_id<br>org:*"]
+        region["region<br>org_region_*"]
     end
 
     subgraph Flags["Signals"]
-        complexity["complexity\nticket_complexity_*"]
-        impact["impact\nimpact_*"]
-        replies["replies\nN_agent_replies"]
+        complexity["complexity<br>ticket_complexity_*"]
+        impact["impact<br>impact_*"]
+        replies["replies<br>N_agent_replies"]
         critical["critical"]
-        hipaa["hipaa\nhipaa_org"]
-        top75["top75\ntop75org"]
+        hipaa["hipaa<br>hipaa_org"]
+        top75["top75<br>top75org"]
     end
 
     style Routing fill:#264653,color:#fff
@@ -145,18 +145,18 @@ flowchart LR
 ```mermaid
 flowchart TD
     subgraph Skills["All zendesk-* Skills"]
-        pool["ticket-pool\nsearch + search"]
-        watcher["ticket-watcher\nsearch + replied"]
-        tldr["ticket-tldr\nsearch + read + replied"]
-        investigator["ticket-investigator\nread 0 + attachments"]
-        classifier["ticket-classifier\nread"]
-        routing["ticket-routing\nticket"]
-        eta["ticket-eta\nread 0"]
-        difficulty["ticket-difficulty\nread"]
-        info["ticket-info-needed\nread 0"]
-        repro["ticket-repro-needed\nread"]
-        org["org-disable\nread 0"]
-        downloader["attachment-downloader\nattachments + download"]
+        pool["ticket-pool<br>search + search"]
+        watcher["ticket-watcher<br>search + replied"]
+        tldr["ticket-tldr<br>search + read + replied"]
+        investigator["ticket-investigator<br>read 0 + attachments"]
+        classifier["ticket-classifier<br>read"]
+        routing["ticket-routing<br>ticket"]
+        eta["ticket-eta<br>read 0"]
+        difficulty["ticket-difficulty<br>read"]
+        info["ticket-info-needed<br>read 0"]
+        repro["ticket-repro-needed<br>read"]
+        org["org-disable<br>read 0"]
+        downloader["attachment-downloader<br>attachments + download"]
     end
 
     subgraph API["zd-api.sh"]

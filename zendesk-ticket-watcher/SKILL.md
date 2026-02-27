@@ -22,8 +22,8 @@ flowchart TD
     Loop --> Search
     
     subgraph Search["Step 1: Detect New Tickets"]
-        ZD["zd-api.sh search\n(real-time)"]
-        Glean["Glean MCP\n(fallback, ~30min delay)"]
+        ZD["zd-api.sh search<br>(real-time)"]
+        Glean["Glean MCP<br>(fallback, ~30min delay)"]
         ZD -.->|"if Chrome unavailable"| Glean
     end
 
@@ -31,8 +31,8 @@ flowchart TD
     Compare -->|"new tickets found"| Notify["macOS notification 🔔"]
     Compare -->|"no new tickets"| Sleep["sleep 300 → loop"]
     
-    Notify --> Check["zd-api.sh replied\n→ REPLIED / NOT_REPLIED"]
-    Check -->|"NOT_REPLIED"| Investigate["Inline Investigation\n(no subagents)"]
+    Notify --> Check["zd-api.sh replied<br>REPLIED / NOT_REPLIED"]
+    Check -->|"NOT_REPLIED"| Investigate["Inline Investigation<br>(no subagents)"]
     Check -->|"REPLIED"| Skip["Skip (already handled)"]
     
     Investigate --> Report["Write ZD-{id}.md"]
