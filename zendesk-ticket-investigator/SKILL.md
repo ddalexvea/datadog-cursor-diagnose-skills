@@ -37,12 +37,13 @@ Then:
 ## Investigation Steps
 
 1. **Read ticket** — Full content from Zendesk via Glean (`user-glean_ai-code-read_document`)
-2. **Similar tickets** — Search Zendesk for resolved tickets with matching symptoms
-3. **Internal docs** — Search Confluence for runbooks, troubleshooting guides, known issues
-4. **Public docs** — Search docs.datadoghq.com for relevant product documentation
-5. **GitHub code** — Search DataDog GitHub repos for config parameters, error messages, source code
-6. **Customer context** — Search Salesforce for org tier, MRR, top75, recent escalations
-7. **Write report** — Structured markdown report with links to all sources
+2. **Download attachments** — List and download attachments via `zendesk-attachment-downloader` (flares, logs, screenshots). If a flare is found, extract and run appropriate analysis skills.
+3. **Similar tickets** — Search Zendesk for resolved tickets with matching symptoms
+4. **Internal docs** — Search Confluence for runbooks, troubleshooting guides, known issues
+5. **Public docs** — Search docs.datadoghq.com for relevant product documentation
+6. **GitHub code** — Search DataDog GitHub repos for config parameters, error messages, source code
+7. **Customer context** — Search Salesforce for org tier, MRR, top75, recent escalations
+8. **Write report** — Structured markdown report with links to all sources, including flare analysis findings
 
 ## Reference Sources
 
@@ -104,17 +105,17 @@ The investigation can be extended to spin up reproduction environments based on 
 
 The `investigate-prompt.md` has a placeholder section for this that can be activated per-topic.
 
-## Known Limitations
+## Attachment Downloads
 
-### Attachments (flares, logs) cannot be downloaded via Glean MCP
+Attachments (agent flares, logs, screenshots) are downloaded automatically using the `zendesk-attachment-downloader` skill, which uses `osascript` + Chrome JS execution to call the Zendesk API through the user's authenticated Chrome session.
 
-Glean MCP reads ticket text content but returns `attachment_data: []` — no download URLs for attached files (agent flares, log files, screenshots, etc.). The investigator can **detect** that a flare was attached (from text like "Logs attached from...") but **cannot download it**.
+**Prerequisites:** Chrome must be running with a Zendesk tab open and "Allow JavaScript from Apple Events" enabled (one-time setup — see `zendesk-attachment-downloader/SKILL.md`).
 
-**Impact:** This is a significant gap. Many TSE investigations depend on analyzing agent flare contents (config, logs, status output).
-
-**Current workaround:** The investigator notes that a flare is attached and asks the user to download it manually, then point the agent to the local file for analysis using the `datadog-cursor-diagnose-rules`.
-
-**Future fix:** Use a Zendesk API token to call `GET /api/v2/tickets/{id}/comments` directly, which returns attachment `content_url` fields that can be downloaded via `curl`. This would enable fully automated flare download and analysis.
+When a flare `.zip` is found among attachments, the investigator will:
+1. Download it via `zendesk-attachment-downloader`
+2. Extract it locally
+3. Run `flare-network-analysis` and/or `flare-profiling-analysis` as appropriate
+4. Include flare findings in the investigation report
 
 ## Files
 
