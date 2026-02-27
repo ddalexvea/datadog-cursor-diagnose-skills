@@ -23,6 +23,7 @@ Skills live **both locally** (`~/.cursor/skills/`) and in this GitHub repo for v
 | `zendesk-ticket-difficulty` | Score ticket difficulty 1-10 based on issue type, product count, environment complexity, reproduction need, and escalation likelihood | "difficulty for #XYZ", "how hard is #XYZ" | Glean MCP |
 | `zendesk-ticket-eta` | Estimate time of resolution — active work time, calendar time, time to next response, with blockers flagged and confidence level. Calibrated by similar resolved tickets | "ETA for #XYZ", "how long for ZD-XYZ" | Glean MCP |
 | `flare-network-analysis` | Analyze a locally extracted Datadog Agent flare for forwarder/intake connectivity issues — produces structured summary with transaction stats, error breakdown, diagnose.log results, and verdict (Healthy/Degraded/Critical) | "analyze flare network", "flare connectivity", "forwarder analysis" | Local flare directory |
+| `flare-profiling-analysis` | Analyze Go profiling data (pprof) from an agent flare — heap diffs, CPU hotspots, block/mutex contention, with customer message and JIRA-ready escalation summary | "analyze flare profiling", "flare memory leak", "pprof analysis", "agent profiling" | Local flare directory, Go installed |
 | `snagit-screen-record` | Start Snagit video capture via text or voice command | "start recording", "record screen" | Snagit 2024, Accessibility permissions |
 | `text-shortcut-manager` | Scan Cursor transcripts for recurring phrases, create espanso text shortcuts automatically | "scan my patterns", "add shortcut" | espanso (`brew install espanso`) |
 
