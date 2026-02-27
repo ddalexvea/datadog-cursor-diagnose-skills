@@ -16,20 +16,17 @@ Read the file `investigations/_processed.log`. If it doesn't exist, create it wi
 
 #### Primary: Chrome JS (real-time)
 
-Run BOTH searches in parallel:
 ```bash
 ~/.cursor/skills/_shared/zd-api.sh search "type:ticket assignee:me (status:new OR status:open)"
-~/.cursor/skills/_shared/zd-api.sh search "type:ticket assignee:me status:pending"
 ```
 
-If either returns `ERROR: No Zendesk tab found`, fall back to Glean.
+If it returns `ERROR: No Zendesk tab found`, fall back to Glean.
 
 #### Fallback: Glean MCP
 
 First resolve your name: `AGENT_NAME=$(~/.cursor/skills/_shared/zd-api.sh me | cut -d'|' -f2 | xargs)`
 
-Search 1 - Open: `user-glean_ai-code-search` query:* app:zendesk dynamic_search_result_filters:assignee:{AGENT_NAME}|status:open
-Search 2 - Pending: same with status:pending, exhaustive:true
+`user-glean_ai-code-search` query:* app:zendesk dynamic_search_result_filters:assignee:{AGENT_NAME}|status:open exhaustive:true
 
 **Note:** Glean data may be up to 30 minutes stale.
 
