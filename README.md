@@ -22,6 +22,7 @@ Skills live **both locally** (`~/.cursor/skills/`) and in this GitHub repo for v
 | `zendesk-ticket-repro-needed` | Evaluate whether a ticket needs hands-on reproduction — decision tree + suggested environment type (minikube, docker, cloud sandbox) | "should I reproduce #XYZ", "repro needed for ZD-XYZ" | Glean MCP |
 | `zendesk-ticket-difficulty` | Score ticket difficulty 1-10 based on issue type, product count, environment complexity, reproduction need, and escalation likelihood | "difficulty for #XYZ", "how hard is #XYZ" | Glean MCP |
 | `zendesk-ticket-eta` | Estimate time of resolution — active work time, calendar time, time to next response, with blockers flagged and confidence level. Calibrated by similar resolved tickets | "ETA for #XYZ", "how long for ZD-XYZ" | Glean MCP |
+| `zendesk-org-disable` | Handle org disable requests end-to-end — determines account type (free/trial/paying), checks org structure (parent/child), identifies CSM, generates 10-step workflow with copy-paste Zendesk notes and customer messages | "disable org for #XYZ", "close account ZD-XYZ", auto-triggers on `account_disable` tickets | Glean MCP |
 | `flare-network-analysis` | Analyze a locally extracted Datadog Agent flare for forwarder/intake connectivity issues — produces structured summary with transaction stats, error breakdown, diagnose.log results, and verdict (Healthy/Degraded/Critical) | "analyze flare network", "flare connectivity", "forwarder analysis" | Local flare directory |
 | `flare-profiling-analysis` | Analyze Go profiling data (pprof) from an agent flare — heap diffs, CPU hotspots, block/mutex contention, with customer message and JIRA-ready escalation summary | "analyze flare profiling", "flare memory leak", "pprof analysis", "agent profiling" | Local flare directory, Go installed |
 | `snagit-screen-record` | Start Snagit video capture via text or voice command | "start recording", "record screen" | Snagit 2024, Accessibility permissions |
@@ -126,6 +127,7 @@ flowchart TD
 | `zendesk-ticket-repro-needed` | "Should I spin up an environment to test this?" | Yes — "should I reproduce #XYZ" |
 | `zendesk-ticket-difficulty` | "How hard is this ticket? (1-10)" | Yes — "difficulty for #XYZ" |
 | `zendesk-ticket-eta` | "How long will this take?" | Yes — "ETA for #XYZ" |
+| `zendesk-org-disable` | "How do I disable this org?" | Yes — "disable org for #XYZ", auto-triggers on account_disable tickets |
 
 Each skill works **standalone** or as part of the pipeline. No cron, no extensions — just agents following instructions.
 
