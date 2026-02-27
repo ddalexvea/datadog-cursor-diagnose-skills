@@ -62,18 +62,23 @@ If the user provides a `.zip`, unzip it first.
 
 ## Output Format
 
-The skill produces a structured summary with:
+The skill produces three outputs:
 
-1. **Agent Context** — version, uptime, site, hostname, install method
-2. **Forwarder Health** — verdict (Healthy / Degraded / Critical) with supporting numbers
-3. **Transaction Summary** — total success, errors, error rate %, dropped, retried
-4. **Error Breakdown** — by type (DNS, TLS, Connection, HTTP) with HTTP error codes
-5. **Logs Agent Health** — bytes sent, retry count, retry time vs uptime ratio
-6. **APM Agent Health** — intake errors from trace-agent.log
-7. **Connectivity Tests** — diagnose.log PASS/FAIL summary, failed endpoints listed
-8. **Configuration Review** — proxy, site, forwarder tuning, TLS settings
-9. **Verdict** — one-line overall assessment
-10. **Recommendations** — prioritized action items
+### 1. Full Report (written to file)
+Structured markdown saved to `investigations/flare-network-analysis-{hostname}.md`:
+- Agent Context — version, uptime, site, hostname, install method
+- Forwarder Health — verdict (Healthy / Degraded / Critical) with supporting numbers
+- Transaction Summary — total success, errors, error rate %, dropped, retried
+- Error Breakdown — by type (DNS, TLS, Connection, HTTP) with HTTP error codes
+- Logs Agent Health — bytes sent, retry count, retry time vs uptime ratio
+- APM Agent Health — intake errors from trace-agent.log
+- Connectivity Tests — diagnose.log PASS/FAIL summary, failed endpoints listed
+- Configuration Review — proxy, site, forwarder tuning, TLS settings
+- Recommendations — prioritized action items
+- **Customer Message** — ready to copy-paste into the Zendesk ticket
+
+### 2. Customer Message (inside the report)
+A professional, concise message including key evidence from `status.log` and `agent.log` — transaction counts, error rates, log retry stats, observed error patterns with timestamps, and configuration notes. Ready to paste into the ticket.
 
 ## Verdict Logic
 

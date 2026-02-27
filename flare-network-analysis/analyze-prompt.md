@@ -292,6 +292,50 @@ Output the following structured report:
 1. **{Priority}** — {action item}
 2. **{Priority}** — {action item}
 3. ...
+
+---
+
+## Customer Message
+
+(Ready to copy-paste into the Zendesk ticket — professional, concise, includes key evidence from the flare)
+
+Hi {customer},
+
+After reviewing the agent flare, here is what we found regarding network connectivity:
+
+**Agent:** v{version} running on `{hostname}` (uptime: {uptime}, site: {site})
+
+**Forwarder (metrics):**
+- {Success} successful transactions, {Errors} error(s) ({error_rate}% error rate)
+- {Dropped} payloads dropped
+- HTTP errors: {list any HTTP error codes and counts, or "none"}
+
+**Logs Agent:**
+- {LogsSent} logs sent out of {LogsProcessed} processed ({loss_rate}% loss)
+- {DestinationErrors} destination errors, {RetryCount} retries
+- Cumulative retry time: {RetryTimeSpent} over {uptime} uptime ({retry_ratio}%)
+
+**Connectivity tests (diagnose.log):** {X} PASS / {Y} FAIL out of {total}
+
+**Errors observed in agent.log:**
+{List the top 2-3 most significant patterns with counts, e.g.:
+- "Could not send payload" to logs intake: {n} occurrences (first: {date}, last: {date})
+- "connection reset by peer": {n} occurrences
+- Backoff events: {n}, escalating up to {max backoff duration}}
+
+**Configuration notes:**
+- On-disk buffering: {enabled/disabled}
+- Proxy: {configured/not configured}
+{Any other relevant config finding}
+
+Based on this analysis, {1-2 sentences with the main finding and recommended next steps — e.g. "the metrics forwarder is healthy but the logs intake path shows intermittent connectivity issues. We recommend checking network policies/firewalls for connections to the logs intake endpoint."}.
+
+{If HEALTHY: "Overall, the agent's network connectivity to Datadog intake endpoints appears healthy. No action is needed at this time."}
+
+Please let us know if you have any questions.
+
+Best regards,
+Alexandre
 ```
 
 ## Verdict Decision Logic
