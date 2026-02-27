@@ -335,7 +335,7 @@ Based on this analysis, {1-2 sentences with the main finding and recommended nex
 Please let us know if you have any questions.
 
 Best regards,
-Alexandre
+{AGENT_NAME}
 ```
 
 ## Verdict Decision Logic

@@ -146,5 +146,4 @@ git add -A && git commit -m "Update skills" && git push
 
 ## Maintainer
 
-Alexandre VEA
 Datadog Technical Support

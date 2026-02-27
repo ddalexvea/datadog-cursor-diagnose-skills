@@ -11,7 +11,7 @@ Can be used standalone or called by the `zendesk-ticket-watcher` skill when new 
 
 ## How to Use
 
-Just say: **"investigate ticket #2513411"** or **"look into ZD-2513411"**
+Just say: **"investigate ticket #1234567"** or **"look into ZD-1234567"**
 
 The agent will:
 1. Read the ticket from Zendesk via Glean

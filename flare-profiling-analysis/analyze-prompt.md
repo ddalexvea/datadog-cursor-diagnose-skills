@@ -363,7 +363,7 @@ After analyzing the agent profiling data from the flare, here is what we found:
 Please let us know if you have any questions.
 
 Best regards,
-Alexandre
+{AGENT_NAME}
 
 ---
 

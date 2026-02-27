@@ -15,10 +15,30 @@ Autonomous background watcher that runs in a dedicated Cursor chat, checking Zen
 
 ## Architecture
 
-```
-Dedicated Agent Chat (looping) → Chrome JS (real-time) → detect new tickets
-                                 ↓ fallback: Glean MCP    → macOS notification
-                                                           → inline investigation → reports
+```mermaid
+flowchart TD
+    Loop["Agent Chat (looping every 5min)"]
+    
+    Loop --> Search
+    
+    subgraph Search["Step 1: Detect New Tickets"]
+        ZD["zd-api.sh search\n(real-time)"]
+        Glean["Glean MCP\n(fallback, ~30min delay)"]
+        ZD -.->|"if Chrome unavailable"| Glean
+    end
+
+    Search --> Compare["Step 2: Compare vs _processed.log"]
+    Compare -->|"new tickets found"| Notify["macOS notification 🔔"]
+    Compare -->|"no new tickets"| Sleep["sleep 300 → loop"]
+    
+    Notify --> Check["zd-api.sh replied\n→ REPLIED / NOT_REPLIED"]
+    Check -->|"NOT_REPLIED"| Investigate["Inline Investigation\n(no subagents)"]
+    Check -->|"REPLIED"| Skip["Skip (already handled)"]
+    
+    Investigate --> Report["Write ZD-{id}.md"]
+    Report --> Sleep
+    Skip --> Sleep
+    Sleep --> Loop
 ```
 
 No cron, no launchd, no extensions. Just an agent following instructions in its own chat.

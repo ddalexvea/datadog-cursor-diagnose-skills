@@ -5,8 +5,8 @@ Follow these steps exactly. Use the Shell tool with `required_permissions: ["all
 ## Step 1: Extract ticket ID
 
 Extract the Zendesk ticket ID from the user's message. It may appear as:
-- `#2515683`, `ZD-2515683`, `2515683`
-- A URL like `https://datadog.zendesk.com/agent/tickets/2515683`
+- `#1234567`, `ZD-1234567`, `1234567`
+- A URL like `https://datadog.zendesk.com/agent/tickets/1234567`
 
 ## Step 2: List attachments on the ticket
 

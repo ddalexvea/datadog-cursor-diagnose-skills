@@ -26,7 +26,9 @@ If either returns `ERROR: No Zendesk tab found`, fall back to Glean.
 
 #### Fallback: Glean MCP
 
-Search 1 - Open: `user-glean_ai-code-search` query:* app:zendesk dynamic_search_result_filters:assignee:Alexandre VEA|status:open
+First resolve your name: `AGENT_NAME=$(~/.cursor/skills/_shared/zd-api.sh me | cut -d'|' -f2 | xargs)`
+
+Search 1 - Open: `user-glean_ai-code-search` query:* app:zendesk dynamic_search_result_filters:assignee:{AGENT_NAME}|status:open
 Search 2 - Pending: same with status:pending, exhaustive:true
 
 **Note:** Glean data may be up to 30 minutes stale.
@@ -46,7 +48,7 @@ For each new ticket:
 ```bash
 ~/.cursor/skills/_shared/zd-api.sh replied {TICKET_ID}
 ```
-Returns `REPLIED` or `NOT_REPLIED`. Glean fallback: check for "Alexandre" in read_document.
+Returns `REPLIED` or `NOT_REPLIED`. Glean fallback: check for `AGENT_NAME` (resolved via `zd-api.sh me`) in read_document.
 
 **4c. Filter:**
 - `REPLIED` → SKIP. Log: "Skipped ZD-XXXXX (already responded)"

@@ -14,20 +14,23 @@ Output includes: ID | status | priority | product | tier | complexity | replies 
 
 ### Fallback: Glean MCP
 
-If Chrome is unavailable, use Glean:
+If Chrome is unavailable, first resolve your name:
+```bash
+AGENT_NAME=$(~/.cursor/skills/_shared/zd-api.sh me | cut -d'|' -f2 | xargs)
+```
 
 Search 1 — Open tickets:
 - Tool: user-glean_ai-code-search
 - query: *
 - app: zendesk
-- dynamic_search_result_filters: assignee:Alexandre VEA|status:open
+- dynamic_search_result_filters: assignee:{AGENT_NAME}|status:open
 - exhaustive: true
 
 Search 2 — Pending tickets:
 - Tool: user-glean_ai-code-search
 - query: *
 - app: zendesk
-- dynamic_search_result_filters: assignee:Alexandre VEA|status:pending
+- dynamic_search_result_filters: assignee:{AGENT_NAME}|status:pending
 - exhaustive: true
 
 **Note:** Glean data may be up to 30 minutes stale.
@@ -55,7 +58,7 @@ If Chrome is unavailable, read all tickets in a single batch:
 - `NOT_REPLIED` → **SKIP** this ticket (newly assigned, not yet answered)
 - `REPLIED` → **INCLUDE** in TLDR
 
-For Glean fallback: scan the conversation for messages from "Alexandre" (case-insensitive).
+For Glean fallback: scan the conversation for messages from `AGENT_NAME` (resolved via `zd-api.sh me` above).
 
 ## Step 4: Generate TLDR for each included ticket
 
@@ -118,7 +121,7 @@ After writing the file, display a brief table:
 
 ## Single ticket mode
 
-If the user asks for a TLDR of a specific ticket (e.g., "tldr ticket #2514617"):
+If the user asks for a TLDR of a specific ticket (e.g., "tldr ticket #1234567"):
 1. Read just that ticket: `~/.cursor/skills/_shared/zd-api.sh read {TICKET_ID} 0`
 2. Generate the TLDR (no filter — always generate even if not responded)
 3. Display inline (don't write to file unless asked)

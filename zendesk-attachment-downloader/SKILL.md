@@ -36,16 +36,16 @@ Then quit and reopen Chrome.
 ## When This Skill is Activated
 
 Triggers:
-- "download attachments from ticket 2515683"
-- "download flare from ZD-2515683"
-- "list attachments on ticket #2515683"
+- "download attachments from ticket 1234567"
+- "download flare from ZD-1234567"
+- "list attachments on ticket #1234567"
 - "get the agent flare from this ticket"
 - "fetch ticket files"
 - Called by `zendesk-ticket-investigator` during investigation
 
 ## How to Use
 
-Say: **"download attachments from ticket 2515683"**
+Say: **"download attachments from ticket 1234567"**
 
 The agent will:
 1. Find the Zendesk tab in Chrome

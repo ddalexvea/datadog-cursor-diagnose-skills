@@ -11,121 +11,62 @@ description: Check and display the current Zendesk ticket pool assigned to the u
 - **Google Chrome** running with a tab open on `zendesk.com`
 - **"Allow JavaScript from Apple Events"** enabled in Chrome (View > Developer > Allow JavaScript from Apple Events) — one-time setup
 
-## How It Works
+## Architecture
 
-Two methods available, tried in order:
-
-1. **Chrome JS (primary)** — Real-time via `osascript` + Zendesk API through Chrome's authenticated session. No delay.
-2. **Glean MCP (fallback)** — If Chrome is unavailable or the JS call fails. Has up to 30 minutes indexing latency.
+```mermaid
+flowchart LR
+    subgraph Primary["Primary: Chrome JS (real-time)"]
+        ZD["zd-api.sh search"]
+        API["Zendesk /api/v2/search.json"]
+    end
+    subgraph Fallback["Fallback: Glean MCP (~30min delay)"]
+        Glean["user-glean_ai-code-search"]
+    end
+    ZD -->|"sync XHR"| API
+    API -->|"compact: id|status|priority|product|tier|complexity"| ZD
+    Glean -.->|"if Chrome unavailable"| API
+```
 
 ## Instructions
 
 ### Step 1: Try Chrome JS (Real-Time)
 
-#### 1a: Find the Zendesk tab in Chrome
+Run BOTH searches in parallel:
 
 ```bash
-osascript -e '
-tell application "Google Chrome"
-    set tabIndex to -1
-    repeat with w in windows
-        set tabCount to count of tabs of w
-        repeat with i from 1 to tabCount
-            if URL of tab i of w contains "zendesk.com" then
-                set tabIndex to i
-                exit repeat
-            end if
-        end repeat
-        if tabIndex > -1 then exit repeat
-    end repeat
-    return tabIndex
-end tell'
+~/.cursor/skills/_shared/zd-api.sh search "type:ticket assignee:me (status:new OR status:open)"
+~/.cursor/skills/_shared/zd-api.sh search "type:ticket assignee:me status:pending"
 ```
 
-If `tabIndex` is `-1`, Chrome has no Zendesk tab open — skip to **Step 2 (Glean Fallback)**.
+Output per ticket: `id | status | priority | product | tier | complexity | replies | updated | subject`
 
-#### 1b: Get current user (dynamic, never hardcode)
+If either returns `ERROR: No Zendesk tab found`, skip to Step 2.
+
+**Optional — fetch a specific view/filter:**
+
+If the user provides a view URL like `https://datadog.zendesk.com/agent/filters/{VIEW_ID}`:
 
 ```bash
-cat > /tmp/zd_pool_user.scpt << 'APPLESCRIPT'
-tell application "Google Chrome"
-    tell tab {TAB_INDEX} of window 1
-        set jsCode to "var xhr = new XMLHttpRequest(); xhr.open('GET', '/api/v2/users/me.json', false); xhr.send(); if (xhr.status === 200) { var u = JSON.parse(xhr.responseText).user; u.id + ' | ' + u.name + ' | ' + u.email; } else { 'ERROR: HTTP ' + xhr.status; }"
-        return (execute javascript jsCode)
-    end tell
-end tell
-APPLESCRIPT
-
-osascript /tmp/zd_pool_user.scpt
+TAB=$(~/.cursor/skills/_shared/zd-api.sh tab)
+# Then use osascript to call /api/v2/views/{VIEW_ID}/execute.json
 ```
-
-If this returns an error (e.g., JS execution disabled), skip to **Step 2 (Glean Fallback)**.
-
-#### 1c: Fetch all active tickets (new + open + pending)
-
-Run **two commands in parallel** to get all ticket statuses:
-
-**Search 1 — New/Open tickets:**
-```bash
-cat > /tmp/zd_pool_open.scpt << 'APPLESCRIPT'
-tell application "Google Chrome"
-    tell tab {TAB_INDEX} of window 1
-        set jsCode to "var xhr = new XMLHttpRequest(); xhr.open('GET', '/api/v2/search.json?query=type:ticket+assignee:me+(status:new+OR+status:open)&sort_by=updated_at&sort_order=desc', false); xhr.send(); if (xhr.status === 200) { var data = JSON.parse(xhr.responseText); var result = 'TOTAL:' + data.count + '\\n'; data.results.forEach(function(t) { var tags = (t.tags || []).join(','); result += t.id + ' | ' + t.status + ' | ' + (t.priority || 'none') + ' | ' + t.updated_at + ' | ' + t.created_at + ' | ' + (t.subject || '') + ' | ' + tags + '\\n'; }); result; } else { 'ERROR: HTTP ' + xhr.status; }"
-        return (execute javascript jsCode)
-    end tell
-end tell
-APPLESCRIPT
-
-osascript /tmp/zd_pool_open.scpt
-```
-
-**Search 2 — Pending tickets:**
-```bash
-cat > /tmp/zd_pool_pending.scpt << 'APPLESCRIPT'
-tell application "Google Chrome"
-    tell tab {TAB_INDEX} of window 1
-        set jsCode to "var xhr = new XMLHttpRequest(); xhr.open('GET', '/api/v2/search.json?query=type:ticket+assignee:me+status:pending&sort_by=updated_at&sort_order=desc', false); xhr.send(); if (xhr.status === 200) { var data = JSON.parse(xhr.responseText); var result = 'TOTAL:' + data.count + '\\n'; data.results.forEach(function(t) { var tags = (t.tags || []).join(','); result += t.id + ' | ' + t.status + ' | ' + (t.priority || 'none') + ' | ' + t.updated_at + ' | ' + t.created_at + ' | ' + (t.subject || '') + ' | ' + tags + '\\n'; }); result; } else { 'ERROR: HTTP ' + xhr.status; }"
-        return (execute javascript jsCode)
-    end tell
-end tell
-APPLESCRIPT
-
-osascript /tmp/zd_pool_pending.scpt
-```
-
-#### 1d: Optionally fetch the specific view/filter
-
-If the user provides a view URL like `https://datadog.zendesk.com/agent/filters/{VIEW_ID}`, fetch that view directly:
-
-```bash
-cat > /tmp/zd_pool_view.scpt << 'APPLESCRIPT'
-tell application "Google Chrome"
-    tell tab {TAB_INDEX} of window 1
-        set jsCode to "var xhr = new XMLHttpRequest(); xhr.open('GET', '/api/v2/views/{VIEW_ID}/execute.json?sort_by=created_at&sort_order=desc', false); xhr.send(); if (xhr.status === 200) { var data = JSON.parse(xhr.responseText); var result = 'VIEW_COUNT:' + data.count + '\\n'; if (data.rows) { data.rows.forEach(function(r) { result += r.ticket_id + ' | ' + r.status + ' | ' + r.priority + ' | ' + r.updated + ' | ' + r.created + ' | ' + r.subject + '\\n'; }); } result; } else { 'ERROR: HTTP ' + xhr.status; }"
-        return (execute javascript jsCode)
-    end tell
-end tell
-APPLESCRIPT
-
-osascript /tmp/zd_pool_view.scpt
-```
-
-Then skip to **Step 3: Parse & Present**.
-
----
 
 ### Step 2: Glean Fallback
 
-Use this only if Chrome JS is unavailable (no Zendesk tab, JS execution disabled, etc.).
+Use only if Chrome JS is unavailable.
 
-Run **two parallel** Glean searches:
+First, resolve your name (try Chrome JS even if search failed — tab might exist but search timed out):
+```bash
+AGENT_NAME=$(~/.cursor/skills/_shared/zd-api.sh me | cut -d'|' -f2 | xargs)
+```
+If that also fails, use `AGENT_NAME` from `zd-api.sh me` output cached earlier, or ask the user.
 
 **Search 1 - Open tickets:**
 ```
 Tool: user-glean_ai-code-search
 query: *
 app: zendesk
-dynamic_search_result_filters: assignee:Alexandre VEA|status:open
+dynamic_search_result_filters: assignee:{AGENT_NAME}|status:open
 exhaustive: true
 ```
 
@@ -134,13 +75,11 @@ exhaustive: true
 Tool: user-glean_ai-code-search
 query: *
 app: zendesk
-dynamic_search_result_filters: assignee:Alexandre VEA|status:pending
+dynamic_search_result_filters: assignee:{AGENT_NAME}|status:pending
 exhaustive: true
 ```
 
 **Note:** Glean data may be up to 30 minutes stale. Mention this in the output header.
-
----
 
 ### Step 3: Parse Ticket Data
 
@@ -148,32 +87,26 @@ From each result, extract:
 
 | Field | Chrome JS Source | Glean Source |
 |-------|-----------------|--------------|
-| Ticket ID | `t.id` | URL path |
-| Subject | `t.subject` | `title` |
-| Status | `t.status` | `matchingFilters.status[0]` |
-| Priority | `t.priority` | `matchingFilters.priority[0]` |
-| Critical | tags contain `critical` | `matchingFilters.critical[0]` |
-| Customer | tags containing `org:` pattern | `matchingFilters.datadogorgname[0]` |
-| Product | tags containing PPC tag | `matchingFilters.producttype[0]` |
-| Tier | tags containing tier tag | `matchingFilters.tier` |
-| Replies | tags: `5_agent_replies`, `10_agent_replies`, etc. | same via `matchingFilters.label` |
-| Follow-up | subject starts with `Re:` | title starts with `Re:` |
-| Parent Ticket | detected from subject/tags | snippets for `follow-up to your previous request #XXXXXX` |
-| Created | `t.created_at` | `createTime` |
-| Updated | `t.updated_at` | `updateTime` |
-| Wait Time | elapsed since updated_at | elapsed since updateTime |
+| Ticket ID | search output col 1 | URL path |
+| Subject | search output last col | `title` |
+| Status | search output col 2 | `matchingFilters.status[0]` |
+| Priority | search output col 3 | `matchingFilters.priority[0]` |
+| Product | search output col 4 | `matchingFilters.producttype[0]` |
+| Tier | search output col 5 | `matchingFilters.tier` |
+| Complexity | search output col 6 | N/A |
+| Replies | search output col 7 | `matchingFilters.label` |
+| Critical | search output col 8 (if CRIT) | `matchingFilters.critical[0]` |
+| Updated | search output col 9 | `updateTime` |
 
 ### Follow-up Detection
 
 A ticket is a **follow-up** when:
-1. Subject/title starts with `Re:`
+1. Subject starts with `Re:`
 2. Content contains `follow-up to your previous request #XXXXXX`
-3. Content contains `This is a follow-up to your previous request`
 
 When detected:
-- Extract the **parent ticket ID** (e.g. `#2386180` -> `2386180`)
+- Extract the **parent ticket ID**
 - Mark with "Follow-up" indicator
-- Reply counts on follow-ups reflect cumulative history
 - Link parent: `[#parentID](https://datadog.zendesk.com/agent/tickets/parentID)`
 
 ### Step 4: Present Results
@@ -221,18 +154,13 @@ Skip if none match.
 
 ### Deep Dive
 
-If asked about a specific ticket, use `user-glean_ai-code-read_document` with the ticket URL.
+If asked about a specific ticket, use `~/.cursor/skills/_shared/zd-api.sh read {TICKET_ID}` (or Glean fallback).
 
 ## Filtering
 
-For Chrome JS, modify the search query parameter:
+Modify the search query:
 - By status: `status:open`, `status:pending`, `status:new`
 - By priority: `priority:high`, `priority:urgent`
 - Combined: `type:ticket assignee:me status:open priority:high`
 
-For Glean fallback, combine filters with `|` in `dynamic_search_result_filters`:
-- Priority: `priority:high`
-- Critical: `critical:true`
-- Product: `producttype:Agent`
-- Customer: `customer:<name>`
-- Top 75: `top75org:true`
+For Glean fallback, combine filters with `|` in `dynamic_search_result_filters`.

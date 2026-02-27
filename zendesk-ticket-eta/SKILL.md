@@ -15,7 +15,7 @@ Estimates how long a ticket will take to resolve, broken into active work time, 
 
 ## How to Use
 
-Just say: **"ETA for #2513411"** or **"how long for ZD-2513411?"**
+Just say: **"ETA for #1234567"** or **"how long for ZD-1234567?"**
 
 Also runs after `zendesk-ticket-pool` to produce a queue timeline sorted by resolution time.
 

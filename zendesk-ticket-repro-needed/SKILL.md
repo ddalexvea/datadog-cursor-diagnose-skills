@@ -14,7 +14,7 @@ Decides whether a ticket requires hands-on reproduction or if the issue can be r
 
 ## How to Use
 
-Just say: **"should I reproduce #2513411"** or **"repro needed for ZD-2513411?"**
+Just say: **"should I reproduce #1234567"** or **"repro needed for ZD-1234567?"**
 
 Also runs automatically after `zendesk-ticket-investigator` when the investigation report is written.
 

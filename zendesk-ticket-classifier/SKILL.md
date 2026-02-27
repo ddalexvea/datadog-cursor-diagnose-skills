@@ -15,7 +15,7 @@ They complement each other. The classifier can feed into the router.
 
 ## How to Use
 
-Just say: **"classify ticket #2513411"** or **"what type of ticket is ZD-2513411?"**
+Just say: **"classify ticket #1234567"** or **"what type of ticket is ZD-1234567?"**
 
 ## When This Skill is Activated
 

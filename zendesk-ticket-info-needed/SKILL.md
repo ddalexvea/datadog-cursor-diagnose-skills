@@ -15,7 +15,7 @@ Analyzes a Zendesk ticket to determine what diagnostic information is still miss
 
 ## How to Use
 
-Just say: **"what info do I need for ticket #2513411"** or **"what to ask for ZD-2513411"**
+Just say: **"what info do I need for ticket #1234567"** or **"what to ask for ZD-1234567"**
 
 ## When This Skill is Activated
 

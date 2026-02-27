@@ -14,7 +14,7 @@ Scores a ticket from 1 (trivial) to 10 (expert-level) based on objective factors
 
 ## How to Use
 
-Just say: **"difficulty for #2513411"** or **"rate ticket ZD-2513411"**
+Just say: **"difficulty for #1234567"** or **"rate ticket ZD-1234567"**
 
 Also runs automatically after `zendesk-ticket-pool` to rank the queue by difficulty.
 
