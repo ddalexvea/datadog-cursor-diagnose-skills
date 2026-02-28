@@ -280,6 +280,23 @@ _(Every code reference MUST include a clickable GitHub link. Never write file na
   3. ...
 ```
 
+At the very end of the file (after the last timeline entry), ALWAYS include:
+
+```markdown
+
+## Triage Gate
+- Org Identified: yes/no
+- Issue Clear: yes/no
+- Info Complete: yes/no
+- Missing: <comma-separated list of what is still needed from the customer, or "none">
+```
+
+Rules for filling the Triage Gate:
+- **Org Identified**: "yes" if you found the customer/org name (from ticket, Salesforce, or comments)
+- **Issue Clear**: "yes" if the problem description is understandable and specific enough to investigate
+- **Info Complete**: "yes" if you have enough data to fully investigate (no critical missing logs, flares, configs, or reproduction steps). "no" if you need more from the customer.
+- **Missing**: list exactly what the customer needs to provide (e.g. "agent flare in debug mode, postgres connection config, screenshot of the error"). Write "none" if Info Complete is "yes".
+
 Replace `SOURCE` with `Watcher` if called from the watcher, or `Agent` if called manually.
 Replace `YYYY-MM-DD HH:MM` with the current date and time.
 
@@ -306,6 +323,8 @@ Read the existing file content. Then **append** a new entry at the end of the fi
 ```
 
 Only include sections that have new information. Do NOT duplicate the header or Ticket Summary.
+
+After appending the new entry, update the `## Triage Gate` section at the bottom of the file to reflect the current state (the gate should always be at the very end of the file and always reflect the latest assessment).
 
 ### 7d: Update the Ticket Summary status
 
