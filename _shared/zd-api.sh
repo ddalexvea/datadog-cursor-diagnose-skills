@@ -39,6 +39,7 @@ t.tags.forEach(function(tag) {
   else if (tag === 'top75org') useful.top75 = 'true';
   else if (tag.match(/^org_region_/)) useful.region = tag.replace('org_region_','');
   else if (tag.match(/^pt_dbm_category:|^pt_agent_category:|^pt_monitors_category:/)) useful.subcategory = tag.split(':')[1];
+  else if (tag === 'oai_opted_out') useful.ai_optout = 'true';
 });
 var tagStr = '';
 Object.keys(useful).forEach(function(k) { tagStr += k + ':' + useful[k] + ', '; });
