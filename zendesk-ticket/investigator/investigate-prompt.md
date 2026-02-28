@@ -193,68 +193,107 @@ To search a specific repo for a parameter or error:
 Check for customer tier, MRR, top75 status, recent escalations.
 
 ## Step 7: Write investigation report
-Write the report to `investigations/ZD-{{TICKET_ID}}.md` with this structure:
+
+The report file is `investigations/ZD-{{TICKET_ID}}.md`. It uses a **timeline format**: a fixed header with ticket metadata, followed by timestamped investigation entries appended over time.
+
+### 7a: Check if the file already exists
+
+```bash
+ls investigations/ZD-{{TICKET_ID}}.md 2>/dev/null
+```
+
+### 7b: If the file does NOT exist — create it with the header + first entry
+
+Write the full file with this structure:
 
 ```markdown
-# ZD-{{TICKET_ID}}: {{SUBJECT}}
+# ZD-{{TICKET_ID}} — {{SUBJECT}}
 
-## Customer
-- **Org:** 
-- **Tier/MRR:** 
-- **Top75:** Yes/No
+## Ticket Summary
+| Field | Value |
+|-------|-------|
+| **Customer** | ORG_NAME |
+| **Priority** | PRIORITY |
+| **Status** | STATUS |
+| **Product** | PRODUCT_AREA |
+| **Tier** | TIER |
+| **MRR** | MRR_RANGE |
+| **Complexity** | COMPLEXITY |
+| **Type** | ISSUE_TYPE |
+| **Created** | CREATED_DATE |
 
-## Problem Summary
+---
+
+## Timeline
+
+### YYYY-MM-DD HH:MM — Initial Investigation (SOURCE)
+
+**Problem Summary**
 (2-3 sentences describing the issue)
 
-## Key Details
+**Key Details**
 - Error messages, logs, config snippets from the ticket
 
-## Similar Past Tickets
-| Ticket | Subject | Resolution |
-|--------|---------|------------|
-| #ID | subject | how it was resolved |
-
-## Relevant Documentation
-### Public Docs
-- [Doc title](https://docs.datadoghq.com/...) - brief description
-
-### Internal Docs
-- [Doc title](confluence_url) - brief description
-
-### GitHub References
-- [Code/Config](https://github.com/DataDog/repo/blob/main/path) - what it shows
-- [Config parameter](https://github.com/DataDog/datadog-agent/blob/main/pkg/config/setup/config.go#LXXX) - default value, description
-
-## Attachments
+**Attachments**
 | File | Size | Type | Notes |
 |------|------|------|-------|
 | filename | size MB | type | downloaded / analyzed / skipped |
 
-## Flare Analysis
-<!-- Include if an agent flare was downloaded and analyzed -->
-- **Flare hostname:** 
-- **Agent version:** 
-- **Key findings:** (from flare-network-analysis or flare-profiling-analysis)
-- **Full report:** `investigations/flare-{analysis-type}-{hostname}.md`
+**Flare Analysis** _(if applicable)_
+- Flare hostname:
+- Agent version:
+- Key findings: (from flare-network-analysis or flare-profiling-analysis)
+- Full report: `investigations/flare-{analysis-type}-{hostname}.md`
 
-## Initial Assessment
-- **Category:** (agent, logs, APM, infra, etc.)
-- **Likely cause:** 
-- **Suggested first steps:**
+**Similar Past Tickets**
+| Ticket | Subject | Resolution |
+|--------|---------|------------|
+| #ID | subject | how it was resolved |
+
+**Relevant Documentation**
+- Public: [Doc title](https://docs.datadoghq.com/...) - brief description
+- Internal: [Doc title](confluence_url) - brief description
+- GitHub: [Code/Config](https://github.com/DataDog/repo/blob/main/path) - what it shows
+
+**Initial Assessment**
+- Category: (agent, logs, APM, infra, etc.)
+- Likely cause:
+- Suggested first steps:
   1. ...
   2. ...
   3. ...
-
-## Reproduction (if applicable)
-<!-- FUTURE: Auto-detect topic and suggest environment -->
-<!-- Kubernetes -> minikube -->
-<!-- AWS -> localstack or real AWS -->
-<!-- Azure -> az CLI -->
-<!-- Docker -> docker-compose -->
-**Topic detected:** (auto-filled by watcher)
-**Suggested environment:** (auto-filled)
-**Reproduction steps:** TODO - manual for now
 ```
+
+Replace `SOURCE` with `Watcher` if called from the watcher, or `Agent` if called manually.
+Replace `YYYY-MM-DD HH:MM` with the current date and time.
+
+### 7c: If the file ALREADY exists — append a new timeline entry
+
+Read the existing file content. Then **append** a new entry at the end of the file:
+
+```markdown
+
+### YYYY-MM-DD HH:MM — Re-investigation (SOURCE)
+
+**Trigger:** (why this re-investigation happened: customer replied, TSE requested, moved to investigation column, etc.)
+
+**New Findings**
+- What changed since the last entry
+- New information from the customer
+- Updated analysis based on new data
+
+**Updated Assessment**
+- Likely cause: (updated if changed)
+- Next steps:
+  1. ...
+  2. ...
+```
+
+Only include sections that have new information. Do NOT duplicate the header or Ticket Summary.
+
+### 7d: Update the Ticket Summary status
+
+If the ticket status has changed since the header was written (e.g. Open → Pending → Solved), update the `| **Status** |` row in the Ticket Summary table to reflect the current status.
 
 ## Rules
 - Keep it factual — only include what you found, don't speculate
@@ -262,3 +301,5 @@ Write the report to `investigations/ZD-{{TICKET_ID}}.md` with this structure:
 - If no docs found, say so
 - ALWAYS include links to relevant public docs, internal docs, and GitHub code
 - Be concise but thorough
+- NEVER overwrite previous timeline entries — always append
+- Use the current timestamp for each new entry

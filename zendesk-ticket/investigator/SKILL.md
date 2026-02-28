@@ -82,14 +82,16 @@ Key files for parameter lookup in `datadog-agent`:
 
 ## Output
 
-Reports are saved to `investigations/ZD-{TICKET_ID}.md` with sections:
-- Customer info (org, tier, MRR, top75)
-- Problem summary
-- Key details (errors, logs, config)
-- Similar past tickets with resolutions
-- Relevant documentation links
-- Initial assessment with suggested first steps
-- Reproduction section (future: auto-detect environment)
+Reports are saved to `investigations/ZD-{TICKET_ID}.md` using a **timeline format**:
+
+**Fixed header** (created once, updated if status changes):
+- Ticket Summary table (customer, priority, status, product, tier, MRR, complexity, type, created date)
+
+**Timeline entries** (appended on each investigation):
+- Timestamped sections: `### YYYY-MM-DD HH:MM — Initial Investigation (Source)`
+- Each entry contains: problem summary, key details, attachments, similar tickets, docs, assessment
+- Re-investigations append new entries without overwriting previous ones
+- Full history is visible in one file, in chronological order
 
 ## Reproduction Environments (Future)
 
