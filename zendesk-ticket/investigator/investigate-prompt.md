@@ -185,6 +185,17 @@ To search a specific repo for a parameter or error:
 - Tool: user-github-search_code or user-github-2-search_code
 - q: "parameter_name repo:DataDog/datadog-agent"
 
+**IMPORTANT — Always build full GitHub links:**
+When you find relevant code files, ALWAYS construct a clickable GitHub URL in the report using this format:
+```
+https://github.com/DataDog/{REPO}/blob/main/{FILE_PATH}
+```
+Example: if you find `_get_replication_role()` in `integrations-core/postgres/datadog_checks/postgres/postgres.py`, write:
+```markdown
+- [`postgres.py → _get_replication_role()`](https://github.com/DataDog/integrations-core/blob/main/postgres/datadog_checks/postgres/postgres.py) — Determines replication role via `SELECT pg_is_in_recovery()`
+```
+NEVER reference code files as plain text without a link. The TSE needs to click through to read the actual source.
+
 ## Step 6: Customer context
 - Tool: user-glean_ai-code-search
 - query: customer org name
@@ -253,7 +264,12 @@ Write the full file with this structure:
 **Relevant Documentation**
 - Public: [Doc title](https://docs.datadoghq.com/...) - brief description
 - Internal: [Doc title](confluence_url) - brief description
-- GitHub: [Code/Config](https://github.com/DataDog/repo/blob/main/path) - what it shows
+
+**Relevant Code**
+- [`file.py → function_name()`](https://github.com/DataDog/REPO/blob/main/path/to/file.py) — what this code does
+- [`config.go → paramName`](https://github.com/DataDog/datadog-agent/blob/main/pkg/config/setup/config.go) — default value, what it controls
+
+_(Every code reference MUST include a clickable GitHub link. Never write file names as plain text.)_
 
 **Initial Assessment**
 - Category: (agent, logs, APM, infra, etc.)
@@ -300,6 +316,7 @@ If the ticket status has changed since the header was written (e.g. Open → Pen
 - If no similar tickets found, say so
 - If no docs found, say so
 - ALWAYS include links to relevant public docs, internal docs, and GitHub code
+- NEVER reference code files without a clickable GitHub link (e.g. `https://github.com/DataDog/REPO/blob/main/path/to/file`)
 - Be concise but thorough
 - NEVER overwrite previous timeline entries — always append
 - Use the current timestamp for each new entry
