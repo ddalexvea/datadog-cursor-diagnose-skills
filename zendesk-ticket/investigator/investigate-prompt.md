@@ -1,5 +1,13 @@
 Investigate Zendesk ticket #{{TICKET_ID}} (Subject: {{SUBJECT}}).
 
+## Step 0: AI Compliance Check (MANDATORY)
+
+```bash
+~/.cursor/skills/_shared/zd-api.sh ticket {{TICKET_ID}}
+```
+
+If the output contains `ai_optout:true`, **STOP NOW**. Tell the user: "Ticket #{{TICKET_ID}}: AI processing is blocked — this customer has opted out of GenAI (oai_opted_out). Handle manually without AI." Do NOT proceed to any further steps.
+
 ## Step 1: Read the ticket
 
 ### Primary: Chrome JS (real-time)

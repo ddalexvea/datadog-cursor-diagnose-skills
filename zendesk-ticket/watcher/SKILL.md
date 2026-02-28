@@ -86,8 +86,25 @@ Every 5 minutes:
 4. If no new tickets → update `_last_run.log`
 5. Sleep 5 minutes → repeat
 
+### AI Compliance Check (MANDATORY — before each investigation)
+
+Before investigating ANY new ticket, check for the `oai_opted_out` tag:
+
+```bash
+~/.cursor/skills/_shared/zd-api.sh ticket {TICKET_ID}
+```
+
+If the output contains `ai_optout:true`:
+- **SKIP investigation entirely** for this ticket
+- Log in `_alert.md`: `| #{TICKET_ID} | AI BLOCKED — customer opted out of GenAI | — |`
+- Do NOT read ticket content, search similar cases, or write a report
+- Send macOS notification: "New ticket #{TICKET_ID} — AI BLOCKED (manual only)"
+- Continue to next ticket
+
+This is a legal/compliance requirement. No exceptions.
+
 ### Investigation Mode (when new tickets found)
-When new tickets are detected, the watcher investigates each ticket **inline** (no subagents — they require manual "Allow" clicks which defeats background automation). For each ticket, it reads the content via Glean, searches for similar cases, checks docs/GitHub, and writes a report to `investigations/ZD-{id}.md`.
+When new tickets are detected, the watcher investigates each ticket **inline** (no subagents — they require manual "Allow" clicks which defeats background automation). For each ticket, it first runs the AI Compliance Check above. If the ticket passes, it reads the content via Glean, searches for similar cases, checks docs/GitHub, and writes a report to `investigations/ZD-{id}.md`.
 
 ### Manual Trigger
 If the user asks to check tickets in an existing chat, follow the same steps from `watcher-prompt.md` but without the loop (single pass).

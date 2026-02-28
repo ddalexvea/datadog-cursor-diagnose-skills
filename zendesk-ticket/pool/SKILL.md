@@ -81,6 +81,18 @@ exhaustive: true
 
 **Note:** Glean data may be up to 30 minutes stale. Mention this in the output header.
 
+### Step 2b: AI Compliance Check (MANDATORY)
+
+For each ticket found, check for the `oai_opted_out` tag by running:
+
+```bash
+~/.cursor/skills/_shared/zd-api.sh ticket {TICKET_ID}
+```
+
+If the output contains `ai_optout:true`, mark that ticket as **AI BLOCKED** in the output table.
+Do NOT trigger any follow-up AI skills (difficulty, ETA, investigator, etc.) for AI-blocked tickets.
+This is a legal/compliance requirement. No exceptions.
+
 ### Step 3: Parse Ticket Data
 
 From each result, extract:
@@ -130,7 +142,8 @@ When detected:
 - Truncate subjects to ~50 chars
 - Show relative time for Updated (e.g. "2h ago", "1d ago")
 - Flag critical tickets with an indicator
-- Notes column: "Follow-up from [#parentID](link)" or "Critical" or empty
+- Notes column: "Follow-up from [#parentID](link)" or "Critical" or "AI BLOCKED" or empty
+- If a ticket has `ai_optout:true`, add **"AI BLOCKED"** to Notes — no AI skills may be run on this ticket
 
 #### Attention Required
 

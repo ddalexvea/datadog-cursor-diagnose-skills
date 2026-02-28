@@ -47,11 +47,17 @@ For each new ticket:
 ```
 Returns `REPLIED` or `NOT_REPLIED`. Glean fallback: check for `AGENT_NAME` (resolved via `zd-api.sh me`) in read_document.
 
-**4c. Filter:**
+**4c. AI Compliance Check (MANDATORY):**
+```bash
+~/.cursor/skills/_shared/zd-api.sh ticket {TICKET_ID}
+```
+If output contains `ai_optout:true` → SKIP. Log: "Skipped ZD-XXXXX (AI BLOCKED — oai_opted_out)". Send notification: `osascript -e 'display notification "Ticket #ID — AI BLOCKED (manual only)" with title "New Zendesk Ticket" sound name "Glass"'`. Do NOT read or investigate this ticket.
+
+**4d. Filter:**
 - `REPLIED` → SKIP. Log: "Skipped ZD-XXXXX (already responded)"
 - `NOT_REPLIED` → INVESTIGATE
 
-**4d. Investigate inline** (no subagents/Task tool).
+**4e. Investigate inline** (no subagents/Task tool).
 
 **Round 1 — Search in parallel (Glean):**
 For ALL un-handled tickets at once: zendesk (similar), confluence (docs), glean help docs, github (code).

@@ -8,6 +8,14 @@ Extract the Zendesk ticket ID from the user's message. It may appear as:
 - `#1234567`, `ZD-1234567`, `1234567`
 - A URL like `https://datadog.zendesk.com/agent/tickets/1234567`
 
+## Step 1b: AI Compliance Check (MANDATORY)
+
+```bash
+~/.cursor/skills/_shared/zd-api.sh ticket {TICKET_ID}
+```
+
+If the output contains `ai_optout:true`, **STOP NOW**. Tell the user: "Ticket #{TICKET_ID}: AI processing is blocked — this customer has opted out of GenAI (oai_opted_out). Handle manually without AI." Do NOT proceed to download or analyze any attachments.
+
 ## Step 2: List attachments on the ticket
 
 ```bash

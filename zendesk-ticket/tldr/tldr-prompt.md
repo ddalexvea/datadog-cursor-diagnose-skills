@@ -43,11 +43,26 @@ Search 3 — On-hold tickets (TSE on hold, Eng on hold, etc.):
 
 **Note:** Glean data may be up to 30 minutes stale.
 
+## Step 1b: AI Compliance Check (MANDATORY)
+
+For each ticket found, check for the `oai_opted_out` tag:
+
+```bash
+~/.cursor/skills/_shared/zd-api.sh ticket {TICKET_ID}
+```
+
+If the output contains `ai_optout:true`:
+- **SKIP this ticket entirely** — do NOT read its content or generate a summary
+- In the output file, add: `## ZD-{TICKET_ID}: [AI BLOCKED — customer opted out of GenAI]`
+- Continue to next ticket
+
+This is a legal/compliance requirement. No exceptions.
+
 ## Step 2: Read ALL ticket contents
 
 ### Primary: Chrome JS
 
-For each ticket, read metadata + comments and check if replied:
+For each ticket (that passed the AI Compliance Check), read metadata + comments and check if replied:
 ```bash
 ~/.cursor/skills/_shared/zd-api.sh read {TICKET_ID}
 ~/.cursor/skills/_shared/zd-api.sh replied {TICKET_ID}
@@ -63,6 +78,7 @@ If Chrome is unavailable, read all tickets in a single batch:
 
 ## Step 3: Filter — skip tickets where I haven't responded
 
+- `ai_optout:true` → **SKIP** this ticket (AI BLOCKED — see Step 1b)
 - `NOT_REPLIED` → **SKIP** this ticket (newly assigned, not yet answered)
 - `REPLIED` → **INCLUDE** in TLDR
 

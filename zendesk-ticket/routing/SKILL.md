@@ -14,6 +14,22 @@ engineering team, relevant Slack channels, and CODEOWNERS paths.
 - **Google Chrome** running with a tab open on `zendesk.com`
 - **"Allow JavaScript from Apple Events"** enabled in Chrome (one-time setup)
 
+## AI Compliance Check (MANDATORY — FIRST STEP)
+
+**Before processing ANY ticket data**, check for the `oai_opted_out` tag:
+
+```bash
+~/.cursor/skills/_shared/zd-api.sh ticket {TICKET_ID}
+```
+
+If the output contains `ai_optout:true`:
+1. **STOP IMMEDIATELY** — do NOT process ticket data through the LLM
+2. Do NOT generate any routing analysis
+3. Tell the user: **"Ticket #{TICKET_ID}: AI processing is blocked — this customer has opted out of GenAI (oai_opted_out). Handle manually without AI."**
+4. Exit the skill
+
+This is a legal/compliance requirement. No exceptions.
+
 ## Step 1: Gather ticket context
 
 **If given a Zendesk ticket URL or ID:**

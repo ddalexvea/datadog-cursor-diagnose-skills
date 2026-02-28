@@ -29,8 +29,25 @@ Triggers on:
 
 Then:
 1. Extract the ticket ID
-2. Follow the steps in `difficulty-prompt.md`
-3. Return score + breakdown
+2. **Run the AI Compliance Check below FIRST**
+3. Follow the steps in `difficulty-prompt.md`
+4. Return score + breakdown
+
+## AI Compliance Check (MANDATORY — FIRST STEP)
+
+**Before processing ANY ticket data**, check for the `oai_opted_out` tag:
+
+```bash
+~/.cursor/skills/_shared/zd-api.sh ticket {TICKET_ID}
+```
+
+If the output contains `ai_optout:true`:
+1. **STOP IMMEDIATELY** — do NOT process ticket data through the LLM
+2. Do NOT generate any difficulty score or analysis
+3. Tell the user: **"Ticket #{TICKET_ID}: AI processing is blocked — this customer has opted out of GenAI (oai_opted_out). Handle manually without AI."**
+4. Exit the skill
+
+This is a legal/compliance requirement. No exceptions.
 
 ## Scoring Rubric (1-10)
 

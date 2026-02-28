@@ -43,16 +43,33 @@ Triggers:
 - "fetch ticket files"
 - Called by `zendesk-ticket-investigator` during investigation
 
+## AI Compliance Check (MANDATORY — FIRST STEP)
+
+**Before processing ANY ticket data**, check for the `oai_opted_out` tag:
+
+```bash
+~/.cursor/skills/_shared/zd-api.sh ticket {TICKET_ID}
+```
+
+If the output contains `ai_optout:true`:
+1. **STOP IMMEDIATELY** — do NOT process ticket data through the LLM
+2. Do NOT download or analyze attachments (attachment content is customer data)
+3. Tell the user: **"Ticket #{TICKET_ID}: AI processing is blocked — this customer has opted out of GenAI (oai_opted_out). Handle manually without AI."**
+4. Exit the skill
+
+This is a legal/compliance requirement. No exceptions.
+
 ## How to Use
 
 Say: **"download attachments from ticket 1234567"**
 
 The agent will:
 1. Find the Zendesk tab in Chrome
-2. Call the Zendesk API to list all attachments on the ticket
-3. Show you the list (name, size, type)
-4. Download selected files to `~/Downloads/`
-5. If an agent flare `.zip` is found, offer to extract and analyze it
+2. **Run AI Compliance Check** (see above)
+3. Call the Zendesk API to list all attachments on the ticket
+4. Show you the list (name, size, type)
+5. Download selected files to `~/Downloads/`
+6. If an agent flare `.zip` is found, offer to extract and analyze it
 
 ## How It Works
 

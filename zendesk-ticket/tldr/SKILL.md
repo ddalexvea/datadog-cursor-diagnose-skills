@@ -56,10 +56,26 @@ What information or action is needed from the customer before proceeding.
 - **Google Chrome** running with a tab open on `zendesk.com`
 - **"Allow JavaScript from Apple Events"** enabled in Chrome (one-time setup)
 
+## AI Compliance Check (MANDATORY)
+
+For each ticket, before generating a TLDR summary, check for the `oai_opted_out` tag:
+
+```bash
+~/.cursor/skills/_shared/zd-api.sh ticket {TICKET_ID}
+```
+
+If the output contains `ai_optout:true`:
+- **SKIP this ticket entirely** — do NOT read its content or generate a summary
+- In the output file, add a line: `## ZD-{TICKET_ID}: [AI BLOCKED — customer opted out of GenAI]`
+- Do NOT include any ticket content, subject details, or analysis
+
+This is a legal/compliance requirement. No exceptions.
+
 ## Filter Logic
 
 - **Include:** tickets with status new, open, pending, or hold (on-hold TSE / on-hold Eng) assigned to you
 - **Exclude:** tickets where you have NOT yet posted any public reply (newly assigned, untouched)
+- **Exclude:** tickets with `ai_optout:true` tag (customer opted out of GenAI — see AI Compliance Check above)
 - **How to detect:** Check ticket comments via Chrome JS (primary) or Glean (fallback) — if no message from the current user is found, skip it
 
 ## Integration
