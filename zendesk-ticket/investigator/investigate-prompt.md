@@ -288,22 +288,32 @@ _(Every code reference MUST include a clickable GitHub link. Never write file na
   3. ...
 ```
 
-At the very end of the file (after the last timeline entry), ALWAYS include:
+At the very end of the file (after the last timeline entry), ALWAYS include these two sections:
+
+**1. Customer Response Draft** (if investigation is complete enough to draft a response):
 
 ```markdown
 
-## Triage Gate
-- Org Identified: yes/no
-- Issue Clear: yes/no
-- Info Complete: yes/no
-- Missing: <comma-separated list of what is still needed from the customer, or "none">
+## Customer Response Draft
+<plain text response the TSE can copy-paste to the customer>
 ```
 
-Rules for filling the Triage Gate:
-- **Org Identified**: "yes" if you found the customer/org name (from ticket, Salesforce, or comments)
-- **Issue Clear**: "yes" if the problem description is understandable and specific enough to investigate
-- **Info Complete**: "yes" if you have enough data to fully investigate (no critical missing logs, flares, configs, or reproduction steps). "no" if you need more from the customer.
-- **Missing**: list exactly what the customer needs to provide (e.g. "agent flare in debug mode, postgres connection config, screenshot of the error"). Write "none" if Info Complete is "yes".
+The response draft must contain plain text only — NO markdown headers, bold, italic, code blocks, or bullet points inside the draft content. Start with a greeting using the customer's first name. Direct, professional tone — no hedging. Include specific commands and doc links as needed. End with: "Best regards,\nAlexandre VEA\nTechnical Support Engineer 2 | Datadog"
+
+**2. Investigation Decision** (ALWAYS required):
+
+```markdown
+
+## Investigation Decision
+- Next: <ready_to_review|waiting|reproduction|investigation>
+- Reason: <one-line explanation of why this is the right next step>
+```
+
+Rules for Next:
+- **"ready_to_review"** — investigation is complete and a response can be drafted for the customer
+- **"waiting"** — need more info from the customer before proceeding
+- **"reproduction"** — need to reproduce the issue in a test environment
+- **"investigation"** — need more investigation time (e.g. waiting on internal research, flare analysis pending)
 
 Replace `SOURCE` with `Watcher` if called from the watcher, or `Agent` if called manually.
 Replace `YYYY-MM-DD HH:MM` with the current date and time.
@@ -332,7 +342,7 @@ Read the existing file content. Then **append** a new entry at the end of the fi
 
 Only include sections that have new information. Do NOT duplicate the header or Ticket Summary.
 
-After appending the new entry, update the `## Triage Gate` section at the bottom of the file to reflect the current state (the gate should always be at the very end of the file and always reflect the latest assessment).
+After appending the new entry, update the `## Customer Response Draft` (if applicable) and `## Investigation Decision` sections at the bottom of the file to reflect the current state (these sections should always be at the very end of the file and always reflect the latest assessment).
 
 ### 7d: Update the Ticket Summary status
 

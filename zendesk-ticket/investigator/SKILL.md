@@ -110,6 +110,12 @@ Reports are saved to `investigations/ZD-{TICKET_ID}.md` using a **timeline forma
 - Re-investigations append new entries without overwriting previous ones
 - Full history is visible in one file, in chronological order
 
+**Decision sections** (at the end of the file, always updated):
+- `## Customer Response Draft` — plain text response the TSE can copy-paste to the customer
+- `## Investigation Decision` — AI routing decision (`Next: ready_to_review|waiting|reproduction|investigation` + `Reason:`)
+- `## Review History` — chronological log of TSE feedback and agent revisions (when used with the Kanban)
+- `## Session Context` — CLI agent session transcript (written by the Kanban extension)
+
 ## Reproduction Environments (Future)
 
 The investigation can be extended to spin up reproduction environments based on the ticket topic:
