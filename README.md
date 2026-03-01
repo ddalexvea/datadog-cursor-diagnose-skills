@@ -46,12 +46,7 @@ The `zd-api.sh` helper filters and compacts API responses to minimize token cons
 ```
 ~/.cursor/skills/
 ├── _shared/                        Shared helper scripts
-│   ├── zd-api.sh                   Chrome JS bridge for Zendesk (9 commands)
-│   ├── chatgpt-api.sh              Chrome JS bridge for ChatGPT (4 commands)
-│   └── glean-chat-api.sh           Chrome JS bridge for Glean Chat (4 commands)
-├── chat-import/                    Chat history importers
-│   ├── chatgpt/                    Import ChatGPT conversations
-│   └── glean-chat/                 Import Glean Chat conversations
+│   └── zd-api.sh                   Chrome JS bridge (9 commands)
 ├── zendesk-ticket/                 All Zendesk ticket skills
 │   ├── pool/                       Check assigned tickets
 │   ├── watcher/                    Background ticket monitor
@@ -61,6 +56,7 @@ The `zd-api.sh` helper filters and compacts API responses to minimize token cons
 │   ├── routing/                    Spec & team routing
 │   ├── info-needed/                Missing info gap analysis
 │   ├── repro-needed/               Reproduction decision tree
+│   ├── reproduction/               Sandbox reproduction (4-tier)
 │   ├── difficulty/                 Difficulty scoring (1-10)
 │   ├── eta/                        Time-to-resolution estimate
 │   ├── org-disable/                Org disable workflow
@@ -85,6 +81,7 @@ The `zd-api.sh` helper filters and compacts API responses to minimize token cons
 | routing | `zendesk-ticket/routing/` | Identify owning TS spec, engineering team, Slack channels, CODEOWNERS | "which spec for #1234567" |
 | info-needed | `zendesk-ticket/info-needed/` | Gap analysis — what's missing + copy-paste customer message | "what info do I need for #1234567" |
 | repro-needed | `zendesk-ticket/repro-needed/` | Decision tree: is reproduction needed? + suggested environment | "should I reproduce #1234567" |
+| reproduction | `zendesk-ticket/reproduction/` | Reproduce issue in sandbox — 4-tier (curl/local/Docker/minikube), deploy agent, test workaround, document findings | "reproduce #1234567" |
 | difficulty | `zendesk-ticket/difficulty/` | Score difficulty 1-10 based on issue type, products, environment, escalation | "difficulty for #1234567" |
 | eta | `zendesk-ticket/eta/` | Estimate time of resolution — active work, calendar time, blockers, confidence | "ETA for #1234567" |
 | org-disable | `zendesk-ticket/org-disable/` | Handle org disable end-to-end — account type, parent/child, CSM, 10-step workflow | "disable org for #1234567" |
@@ -96,13 +93,6 @@ The `zd-api.sh` helper filters and compacts API responses to minimize token cons
 |-------|-------------|---------|
 | `flare-network-analysis` | Analyze agent flare for forwarder/intake connectivity — transaction stats, error breakdown, diagnose.log, verdict | "analyze flare network" |
 | `flare-profiling-analysis` | Analyze Go profiling (pprof) from flare — heap diffs, CPU hotspots, block/mutex contention, escalation summary | "analyze flare profiling" |
-
-### Chat Import Skills — `chat-import/` (Chrome JS DOM scraping)
-
-| Skill | Path | Description | Trigger |
-|-------|------|-------------|---------|
-| chatgpt-import | `chat-import/chatgpt/` | Import ChatGPT conversations to markdown — lists sidebar, navigates & scrapes DOM, saves to `~/.cursor/knowledge/chatgpt-chats/` | "import chatgpt chats" |
-| glean-chat-import | `chat-import/glean-chat/` | Import Glean Chat conversations to markdown — scrapes DOM with sources, saves to `~/.cursor/knowledge/glean-chats/` | "import glean chat" |
 
 ### Utility Skills
 
@@ -116,8 +106,6 @@ The `zd-api.sh` helper filters and compacts API responses to minimize token cons
 | Path | Description |
 |------|-------------|
 | `_shared/zd-api.sh` | Centralized Chrome JS bridge — all Zendesk API calls in one script (see `_shared/README.md` for full docs) |
-| `_shared/chatgpt-api.sh` | Chrome JS bridge for ChatGPT — `list`, `fetch`, `save` conversations via DOM scraping |
-| `_shared/glean-chat-api.sh` | Chrome JS bridge for Glean Chat — `list`, `fetch`, `save` conversations via DOM scraping + temp JS file for complex extraction |
 
 ## Zendesk Ticket Pipeline
 
@@ -150,6 +138,7 @@ flowchart TD
     T["tldr<br>zd-api.sh read + replied"] -.->|standalone| T1["investigations/TLDR-all.md"]
     I["info-needed<br>zd-api.sh read"] -.->|standalone| I1["What info is missing?"]
     J["repro-needed<br>zd-api.sh read"] -.->|standalone| J1["Should I reproduce?"]
+    RE["reproduction<br>minikube / docker / curl"] -.->|"after repro-needed"| RE1["investigations/ZD-*.md<br>## Reproduction"]
     K["difficulty<br>zd-api.sh read"] -.->|standalone| K1["Score 1-10"]
     L["eta<br>zd-api.sh read"] -.->|standalone| L1["Time estimate"]
     CL["classifier<br>zd-api.sh read"] -.->|standalone| CL1["Bug/question/feature?"]
@@ -181,6 +170,7 @@ flowchart TD
 | routing | "Who handles it?" | `zd-api.sh ticket` (tags) |
 | info-needed | "What info is missing?" | `zd-api.sh read 0` (full) |
 | repro-needed | "Should I reproduce?" | `zd-api.sh read` |
+| reproduction | "Reproduce in sandbox (4-tier) → investigations/ZD-*.md" | `zd-api.sh read` + investigations |
 | difficulty | "How hard? (1-10)" | `zd-api.sh read` |
 | eta | "How long?" | `zd-api.sh read 0` (full) |
 | org-disable | "How do I disable this org?" | `zd-api.sh read 0` (full) |
