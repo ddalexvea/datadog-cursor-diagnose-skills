@@ -320,7 +320,12 @@ Replace `YYYY-MM-DD HH:MM` with the current date and time.
 
 ### 7c: If the file ALREADY exists — append a new timeline entry
 
-Read the existing file content. Then **append** a new entry at the end of the file:
+Read the existing file content. Pay attention to these sections that may already exist:
+- `## Review History` — contains TSE feedback and prior agent revisions. **Read this carefully** — if the TSE requested changes, address them in your new entry.
+- `## Session Context` — contains CLI agent session transcript. **Preserve as-is** — do not modify or remove.
+- `## Chat TLDR` — contains summary of prior interactive chat sessions. **Preserve as-is** — do not modify or remove.
+
+Then **append** a new timeline entry under `## Timeline`:
 
 ```markdown
 
@@ -342,7 +347,13 @@ Read the existing file content. Then **append** a new entry at the end of the fi
 
 Only include sections that have new information. Do NOT duplicate the header or Ticket Summary.
 
-After appending the new entry, update the `## Customer Response Draft` (if applicable) and `## Investigation Decision` sections at the bottom of the file to reflect the current state (these sections should always be at the very end of the file and always reflect the latest assessment).
+After appending the new entry, update the `## Customer Response Draft` and `## Investigation Decision` sections. The expected section order at the end of the file is:
+
+1. `## Customer Response Draft` — updated response for the customer
+2. `## Review History` — preserved (only the Kanban UI appends TSE feedback here)
+3. `## Session Context` — preserved as-is
+4. `## Chat TLDR` — preserved as-is
+5. `## Investigation Decision` — updated routing decision (always last)
 
 ### 7d: Update the Ticket Summary status
 
@@ -357,3 +368,5 @@ If the ticket status has changed since the header was written (e.g. Open → Pen
 - Be concise but thorough
 - NEVER overwrite previous timeline entries — always append
 - Use the current timestamp for each new entry
+- NEVER delete or modify existing `## Review History`, `## Session Context`, or `## Chat TLDR` sections — these are managed by the Kanban extension and interactive chat sessions
+- When updating the file, maintain the section order: Timeline → Customer Response Draft → Review History → Session Context → Chat TLDR → Investigation Decision

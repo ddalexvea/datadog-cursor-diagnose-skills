@@ -31,6 +31,20 @@ Note:
 - Has the customer provided diagnostic info (flare, logs, screenshots)?
 - Is there any sign this might be a bug vs config issue?
 
+## Step 1b: Check existing investigation file
+
+```bash
+ls investigations/ZD-{{TICKET_ID}}.md 2>/dev/null
+```
+
+If the file exists, read it for additional context. Key sections:
+- `## Ticket Summary` — product area, type, complexity
+- `## Timeline` — investigation findings, attachments analyzed, similar tickets found
+- `## Investigation Decision` / `## Triage Decision` — AI routing decisions (reason field helps assess complexity)
+- `## Review History` — number of review rounds indicates complexity
+
+Use existing investigation data to more accurately score factors like issue type, products involved, reproduction needs, and escalation likelihood.
+
 ## Step 2: Score each factor
 
 Start at a base score of 3 (average ticket), then adjust:

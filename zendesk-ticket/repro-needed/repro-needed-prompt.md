@@ -26,6 +26,20 @@ urls: ["https://datadog.zendesk.com/agent/tickets/{{TICKET_ID}}"]
 
 Note: What is the issue? Is it a bug report, config problem, or question? What product area?
 
+## Step 1b: Check existing investigation file
+
+```bash
+ls investigations/ZD-{{TICKET_ID}}.md 2>/dev/null
+```
+
+If the file exists, read it. Key sections for reproduction assessment:
+- `## Timeline` — investigation findings may already answer whether repro is needed
+- `## Investigation Decision` — if `Next: reproduction`, the investigator already flagged it
+- `## Customer Response Draft` — if a response is already drafted, repro may not be needed
+- `## Review History` — TSE feedback may request or dismiss reproduction
+
+If the investigator already determined reproduction is needed (or not), use that finding instead of re-analyzing from scratch.
+
 ## Step 2: Check if the answer already exists
 
 Search for similar resolved tickets:

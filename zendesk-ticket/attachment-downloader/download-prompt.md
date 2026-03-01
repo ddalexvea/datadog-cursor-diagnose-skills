@@ -78,6 +78,8 @@ If any downloaded file matches the pattern `datadog-agent-*.zip`:
    - "Run flare-network-analysis on this flare?"
    - "Run flare-profiling-analysis on this flare?"
 
+   Note: If `investigations/ZD-{TICKET_ID}.md` exists, flare findings should be appended as a timeline entry in that file (under `## Timeline`), preserving all existing sections (`## Customer Response Draft`, `## Review History`, `## Session Context`, `## Chat TLDR`, `## Investigation Decision`).
+
 ## Step 7: Summary
 
 ```

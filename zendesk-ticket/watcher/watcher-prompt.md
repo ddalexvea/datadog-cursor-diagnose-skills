@@ -64,7 +64,7 @@ For ALL un-handled tickets at once: zendesk (similar), confluence (docs), glean 
 
 **Round 2 — Write reports:**
 Write `investigations/ZD-{ID}.md` per `zendesk-ticket/investigator/investigate-prompt.md`.
-If the file already exists, APPEND a new timeline entry — do NOT overwrite. Use source `Watcher`.
+If the file already exists, APPEND a new timeline entry — do NOT overwrite existing sections (`## Review History`, `## Session Context`, `## Chat TLDR`). Update `## Customer Response Draft` and `## Investigation Decision` to reflect current state. Use source `Watcher`.
 
 ### Step 5: If NO new tickets
 Write `No new tickets - CURRENT_DATETIME` to `investigations/_last_run.log`

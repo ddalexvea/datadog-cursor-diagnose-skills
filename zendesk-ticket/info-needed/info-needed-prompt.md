@@ -26,6 +26,21 @@ urls: ["https://datadog.zendesk.com/agent/tickets/{{TICKET_ID}}"]
 
 Read ALL comments. Note: product area, OS/environment, what's already provided, what's already been asked.
 
+## Step 1b: Check existing investigation file
+
+```bash
+ls investigations/ZD-{{TICKET_ID}}.md 2>/dev/null
+```
+
+If the file exists, read it. It may contain these sections with useful context:
+- `## Ticket Summary` — metadata (customer, priority, product, type)
+- `## Timeline` — timestamped investigation entries with findings, attachments, similar tickets
+- `## Customer Response Draft` — AI-drafted response (shows what was already communicated)
+- `## Review History` — TSE feedback and agent revision history
+- `## Triage Decision` / `## Investigation Decision` — AI routing decisions with missing info
+
+Use existing data to avoid re-asking for info that was already identified as provided or already requested. The Timeline and Review History are especially useful for understanding the full conversation arc.
+
 ## Step 2: Search Confluence for troubleshooting guide
 
 ```

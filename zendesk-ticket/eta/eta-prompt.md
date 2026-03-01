@@ -33,6 +33,22 @@ Read ALL comments. Determine:
 - Has escalation happened or is it likely?
 - How many back-and-forth exchanges so far?
 
+## Step 1b: Check existing investigation file
+
+```bash
+ls investigations/ZD-{{TICKET_ID}}.md 2>/dev/null
+```
+
+If the file exists, read it for lifecycle and context data. Key sections:
+- `## Ticket Summary` — product area, priority, type
+- `## Timeline` — investigation entries reveal how much work has been done
+- `## Customer Response Draft` — if present, a response is ready (phase = RESPONSE READY)
+- `## Review History` — number of TSE review rounds (each round adds ~15-30min active work)
+- `## Investigation Decision` / `## Triage Decision` — current routing and reason
+- `## Session Context` — CLI agent session data showing work performed
+
+Use these to better detect the lifecycle phase and calibrate the estimate based on actual work done.
+
 ## Step 2: Detect the lifecycle phase
 
 Based on the comments, determine the current phase:

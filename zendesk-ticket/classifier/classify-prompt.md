@@ -24,6 +24,23 @@ Returns metadata (filtered tags including product, impact, complexity) + comment
 
 Extract: subject, first customer message, any error messages, logs, config snippets, urgency indicators.
 
+## Step 1b: Check existing investigation file
+
+```bash
+ls investigations/ZD-{{TICKET_ID}}.md 2>/dev/null
+```
+
+If the file exists, read it. It may contain these sections that provide useful context:
+- `## Ticket Summary` — metadata (customer, priority, product, type)
+- `## Timeline` — timestamped investigation entries with findings
+- `## Customer Response Draft` — AI-drafted response for TSE review
+- `## Review History` — TSE feedback and agent revision history
+- `## Session Context` — CLI agent session transcript
+- `## Chat TLDR` — summary of interactive chat sessions
+- `## Triage Decision` / `## Investigation Decision` — AI routing decisions
+
+Use any existing data to inform your classification (e.g., product area, issue type from previous analysis). Do NOT re-investigate — just use what's already there.
+
 ## Step 2: Initial classification (signal words)
 
 Scan the ticket content for these signal patterns:

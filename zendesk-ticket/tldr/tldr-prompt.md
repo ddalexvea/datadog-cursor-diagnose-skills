@@ -84,6 +84,24 @@ If Chrome is unavailable, read all tickets in a single batch:
 
 For Glean fallback: scan the conversation for messages from `AGENT_NAME` (resolved via `zd-api.sh me` above).
 
+## Step 3b: Check existing investigation files
+
+For each included ticket, check if an investigation file exists:
+
+```bash
+ls investigations/ZD-{TICKET_ID}.md 2>/dev/null
+```
+
+If the file exists, read it to enrich the TLDR. Key sections:
+- `## Ticket Summary` — verified metadata
+- `## Timeline` — investigation findings, similar tickets, docs found
+- `## Customer Response Draft` — shows what response is ready to send
+- `## Review History` — TSE feedback and agent revisions (shows back-and-forth count)
+- `## Investigation Decision` / `## Triage Decision` — current routing and reason
+- `## Chat TLDR` — summary from interactive chat sessions (merge into your TLDR)
+
+Use this data to produce a more accurate TLDR than ticket comments alone. The investigation file reflects the current state of work, not just the ticket conversation.
+
 ## Step 4: Generate TLDR for each included ticket
 
 For each ticket, write a TLDR following this exact template:
