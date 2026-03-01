@@ -46,7 +46,12 @@ The `zd-api.sh` helper filters and compacts API responses to minimize token cons
 ```
 ~/.cursor/skills/
 ├── _shared/                        Shared helper scripts
-│   └── zd-api.sh                   Chrome JS bridge (9 commands)
+│   ├── zd-api.sh                   Chrome JS bridge for Zendesk (9 commands)
+│   ├── chatgpt-api.sh              Chrome JS bridge for ChatGPT (4 commands)
+│   └── glean-chat-api.sh           Chrome JS bridge for Glean Chat (4 commands)
+├── chat-import/                    Chat history importers
+│   ├── chatgpt/                    Import ChatGPT conversations
+│   └── glean-chat/                 Import Glean Chat conversations
 ├── zendesk-ticket/                 All Zendesk ticket skills
 │   ├── pool/                       Check assigned tickets
 │   ├── watcher/                    Background ticket monitor
@@ -92,6 +97,13 @@ The `zd-api.sh` helper filters and compacts API responses to minimize token cons
 | `flare-network-analysis` | Analyze agent flare for forwarder/intake connectivity — transaction stats, error breakdown, diagnose.log, verdict | "analyze flare network" |
 | `flare-profiling-analysis` | Analyze Go profiling (pprof) from flare — heap diffs, CPU hotspots, block/mutex contention, escalation summary | "analyze flare profiling" |
 
+### Chat Import Skills — `chat-import/` (Chrome JS DOM scraping)
+
+| Skill | Path | Description | Trigger |
+|-------|------|-------------|---------|
+| chatgpt-import | `chat-import/chatgpt/` | Import ChatGPT conversations to markdown — lists sidebar, navigates & scrapes DOM, saves to `~/.cursor/knowledge/chatgpt-chats/` | "import chatgpt chats" |
+| glean-chat-import | `chat-import/glean-chat/` | Import Glean Chat conversations to markdown — scrapes DOM with sources, saves to `~/.cursor/knowledge/glean-chats/` | "import glean chat" |
+
 ### Utility Skills
 
 | Skill | Description | Trigger | Prerequisites |
@@ -104,6 +116,8 @@ The `zd-api.sh` helper filters and compacts API responses to minimize token cons
 | Path | Description |
 |------|-------------|
 | `_shared/zd-api.sh` | Centralized Chrome JS bridge — all Zendesk API calls in one script (see `_shared/README.md` for full docs) |
+| `_shared/chatgpt-api.sh` | Chrome JS bridge for ChatGPT — `list`, `fetch`, `save` conversations via DOM scraping |
+| `_shared/glean-chat-api.sh` | Chrome JS bridge for Glean Chat — `list`, `fetch`, `save` conversations via DOM scraping + temp JS file for complex extraction |
 
 ## Zendesk Ticket Pipeline
 
