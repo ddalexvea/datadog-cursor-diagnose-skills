@@ -98,7 +98,7 @@ case "$COMMAND" in
     ticket)
         TICKET_ID="${1:?Usage: zd-api.sh ticket <ID>}"
         TAB=$(require_tab)
-        chrome_js "$TAB" "var xhr = new XMLHttpRequest(); xhr.open('GET', '/api/v2/tickets/${TICKET_ID}.json', false); xhr.send(); if (xhr.status === 200) { var t = JSON.parse(xhr.responseText).ticket; ${TAG_FILTER_JS} 'SUBJECT: ' + t.subject + '\\\\nSTATUS: ' + t.status + '\\\\nCUSTOM_STATUS_ID: ' + (t.custom_status_id || '') + '\\\\nCHANNEL: ' + ((t.via && t.via.channel) || '') + '\\\\nPRIORITY: ' + (t.priority || 'none') + '\\\\nCREATED: ' + t.created_at + '\\\\nUPDATED: ' + t.updated_at + '\\\\n' + tagStr; } else { 'ERROR: HTTP ' + xhr.status; }"
+        chrome_js "$TAB" "var xhr = new XMLHttpRequest(); xhr.open('GET', '/api/v2/tickets/${TICKET_ID}.json', false); xhr.send(); if (xhr.status === 200) { var t = JSON.parse(xhr.responseText).ticket; ${TAG_FILTER_JS} 'SUBJECT: ' + t.subject + '\\\\nSTATUS: ' + t.status + '\\\\nCUSTOM_STATUS_ID: ' + (t.custom_status_id || '') + '\\\\nASSIGNEE_ID: ' + (t.assignee_id || '') + '\\\\nCHANNEL: ' + ((t.via && t.via.channel) || '') + '\\\\nPRIORITY: ' + (t.priority || 'none') + '\\\\nCREATED: ' + t.created_at + '\\\\nUPDATED: ' + t.updated_at + '\\\\n' + tagStr; } else { 'ERROR: HTTP ' + xhr.status; }"
         ;;
 
     comments)
