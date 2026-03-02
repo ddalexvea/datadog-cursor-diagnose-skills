@@ -141,6 +141,7 @@ Pick the **simplest possible tier**. Never use minikube when curl suffices.
 
 ## Integration with Other Skills
 
+- **`zendesk-attachment-downloader`**: Downloads customer config files, manifests, and agent flares from the ticket before reproducing. Uses Chrome session via osascript.
 - **After `zendesk-ticket-repro-needed`**: if verdict is YES, this skill executes the reproduction
 - **After `zendesk-ticket-investigator`**: if Investigation Decision says `Next: reproduction`, this runs next
 - **References**: [datadog-sandboxes-by-ai](https://github.com/ddalexvea/datadog-sandboxes-by-ai) for existing sandbox templates
