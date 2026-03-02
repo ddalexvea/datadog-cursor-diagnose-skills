@@ -40,6 +40,8 @@ t.tags.forEach(function(tag) {
   else if (tag.match(/^org_region_/)) useful.region = tag.replace('org_region_','');
   else if (tag.match(/^pt_dbm_category:|^pt_agent_category:|^pt_monitors_category:/)) useful.subcategory = tag.split(':')[1];
   else if (tag === 'oai_opted_out') useful.ai_optout = 'true';
+  else if (tag === 'messaging_session_live') useful.chat = 'live';
+  else if (tag === 'messaging_session_ended' || tag === 'messaging_session_moved_offline') useful.chat = 'ended';
 });
 var tagStr = '';
 Object.keys(useful).forEach(function(k) { tagStr += k + ':' + useful[k] + ', '; });
@@ -96,7 +98,7 @@ case "$COMMAND" in
     ticket)
         TICKET_ID="${1:?Usage: zd-api.sh ticket <ID>}"
         TAB=$(require_tab)
-        chrome_js "$TAB" "var xhr = new XMLHttpRequest(); xhr.open('GET', '/api/v2/tickets/${TICKET_ID}.json', false); xhr.send(); if (xhr.status === 200) { var t = JSON.parse(xhr.responseText).ticket; ${TAG_FILTER_JS} 'SUBJECT: ' + t.subject + '\\\\nSTATUS: ' + t.status + '\\\\nCUSTOM_STATUS_ID: ' + (t.custom_status_id || '') + '\\\\nPRIORITY: ' + (t.priority || 'none') + '\\\\nCREATED: ' + t.created_at + '\\\\nUPDATED: ' + t.updated_at + '\\\\n' + tagStr; } else { 'ERROR: HTTP ' + xhr.status; }"
+        chrome_js "$TAB" "var xhr = new XMLHttpRequest(); xhr.open('GET', '/api/v2/tickets/${TICKET_ID}.json', false); xhr.send(); if (xhr.status === 200) { var t = JSON.parse(xhr.responseText).ticket; ${TAG_FILTER_JS} 'SUBJECT: ' + t.subject + '\\\\nSTATUS: ' + t.status + '\\\\nCUSTOM_STATUS_ID: ' + (t.custom_status_id || '') + '\\\\nCHANNEL: ' + ((t.via && t.via.channel) || '') + '\\\\nPRIORITY: ' + (t.priority || 'none') + '\\\\nCREATED: ' + t.created_at + '\\\\nUPDATED: ' + t.updated_at + '\\\\n' + tagStr; } else { 'ERROR: HTTP ' + xhr.status; }"
         ;;
 
     comments)
@@ -120,7 +122,7 @@ case "$COMMAND" in
         else
             SUBSTR_JS="c.body.substring(0, ${MAX_CHARS})"
         fi
-        chrome_js "$TAB" "var xhr = new XMLHttpRequest(); xhr.open('GET', '/api/v2/tickets/${TICKET_ID}.json', false); xhr.send(); var xhr2 = new XMLHttpRequest(); xhr2.open('GET', '/api/v2/tickets/${TICKET_ID}/comments.json', false); xhr2.send(); if (xhr.status === 200 && xhr2.status === 200) { var t = JSON.parse(xhr.responseText).ticket; ${TAG_FILTER_JS} var comments = JSON.parse(xhr2.responseText).comments; var result = 'SUBJECT: ' + t.subject + '\\\\nSTATUS: ' + t.status + '\\\\nCUSTOM_STATUS_ID: ' + (t.custom_status_id || '') + '\\\\nPRIORITY: ' + (t.priority || 'none') + '\\\\nCREATED: ' + t.created_at + '\\\\nUPDATED: ' + t.updated_at + '\\\\n' + tagStr + '\\\\n\\\\nCOMMENTS: ' + comments.length + '\\\\n'; comments.forEach(function(c, i) { result += '---\\\\n[' + (i+1) + '] AUTHOR:' + c.author_id + ' | ' + c.created_at + '\\\\n' + ${SUBSTR_JS} + '\\\\n'; }); result; } else { 'ERROR: ' + xhr.status + '/' + xhr2.status; }"
+        chrome_js "$TAB" "var xhr = new XMLHttpRequest(); xhr.open('GET', '/api/v2/tickets/${TICKET_ID}.json', false); xhr.send(); var xhr2 = new XMLHttpRequest(); xhr2.open('GET', '/api/v2/tickets/${TICKET_ID}/comments.json', false); xhr2.send(); if (xhr.status === 200 && xhr2.status === 200) { var t = JSON.parse(xhr.responseText).ticket; ${TAG_FILTER_JS} var comments = JSON.parse(xhr2.responseText).comments; var result = 'SUBJECT: ' + t.subject + '\\\\nSTATUS: ' + t.status + '\\\\nCUSTOM_STATUS_ID: ' + (t.custom_status_id || '') + '\\\\nCHANNEL: ' + ((t.via && t.via.channel) || '') + '\\\\nPRIORITY: ' + (t.priority || 'none') + '\\\\nCREATED: ' + t.created_at + '\\\\nUPDATED: ' + t.updated_at + '\\\\n' + tagStr + '\\\\n\\\\nCOMMENTS: ' + comments.length + '\\\\n'; comments.forEach(function(c, i) { result += '---\\\\n[' + (i+1) + '] AUTHOR:' + c.author_id + ' | ' + c.created_at + '\\\\n' + ${SUBSTR_JS} + '\\\\n'; }); result; } else { 'ERROR: ' + xhr.status + '/' + xhr2.status; }"
         ;;
 
     replied)
