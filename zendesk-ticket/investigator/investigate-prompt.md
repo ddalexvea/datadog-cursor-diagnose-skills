@@ -31,62 +31,22 @@ Identify the **product area** (agent, logs, APM, infra, NDM, DBM, containers, et
 
 Use the `zendesk-attachment-downloader` skill to list and download attachments from the ticket.
 
-### 2a: Find the Zendesk tab in Chrome
+### 2a: List attachments
 
 ```bash
-osascript << 'APPLESCRIPT'
-tell application "Google Chrome"
-    set foundTab to -1
-    repeat with i from 1 to (count of tabs of window 1)
-        if URL of tab i of window 1 contains "zendesk.com" then
-            set foundTab to i
-            exit repeat
-        end if
-    end repeat
-    if foundTab is -1 then
-        return "ERROR: No Zendesk tab found"
-    end if
-    return "OK:" & foundTab
-end tell
-APPLESCRIPT
+~/.cursor/skills/_shared/zd-api.sh attachments {{TICKET_ID}}
 ```
 
-If `ERROR`: Skip attachment download and note "Chrome not available for attachment download" in the report. Continue to Step 3.
-
-### 2b: List attachments
-
-Write and execute an AppleScript file (replace `{TAB_INDEX}` and `{{TICKET_ID}}`):
-
-```bash
-cat > /tmp/zd_list_attachments.scpt << 'APPLESCRIPT'
-tell application "Google Chrome"
-    tell tab {TAB_INDEX} of window 1
-        set jsCode to "var xhr = new XMLHttpRequest(); xhr.open('GET', '/api/v2/tickets/{{TICKET_ID}}/comments.json', false); xhr.send(); if (xhr.status === 200) { var data = JSON.parse(xhr.responseText); var attachments = []; data.comments.forEach(function(c) { if (c.attachments) { c.attachments.forEach(function(a) { attachments.push(a.file_name + ' | ' + Math.round(a.size/1024/1024*100)/100 + ' MB | ' + a.content_type + ' | ' + a.content_url); }); } }); attachments.length > 0 ? attachments.join('\\n') : 'NO_ATTACHMENTS'; } else { 'ERROR: HTTP ' + xhr.status; }"
-        return (execute javascript jsCode)
-    end tell
-end tell
-APPLESCRIPT
-
-osascript /tmp/zd_list_attachments.scpt
-```
-
+If `ERROR: No Zendesk tab found in Chrome`: Skip attachment download and note "Chrome not available for attachment download" in the report. Continue to Step 3.
 If `NO_ATTACHMENTS`: Note in the report. Continue to Step 3.
 
-### 2c: Download agent flares
+### 2b: Download agent flares
 
 If any attachment filename matches `datadog-agent-*.zip`:
 
 1. Download it:
 ```bash
-cat > /tmp/zd_download.scpt << 'APPLESCRIPT'
-tell application "Google Chrome"
-    tell tab {TAB_INDEX} of window 1
-        return (execute javascript "var a=document.createElement('a');a.href='{CONTENT_URL}';a.download='{FILENAME}';document.body.appendChild(a);a.click();document.body.removeChild(a);'Download triggered'")
-    end tell
-end tell
-APPLESCRIPT
-
-osascript /tmp/zd_download.scpt
+~/.cursor/skills/_shared/zd-api.sh download '{CONTENT_URL}' '{FILENAME}'
 ```
 
 2. Wait for download and extract:
