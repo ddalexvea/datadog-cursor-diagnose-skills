@@ -4,8 +4,8 @@
 #
 # Commands:
 #   tab                                    Find Confluence tab index in Chrome
-#   create-page <parent_id> <title> <content>   Create a child page under parent
-#   update-page <page_id> <content>       Update existing page content
+#   create-page <parent_id> <title_file> <content_file>   Create child page (reads from files)
+#   update-page <page_id> <content_file>  Update existing page content (reads markdown from file)
 #   get-page <page_id>                    Get page content
 
 set -euo pipefail
@@ -69,11 +69,18 @@ case "$COMMAND" in
     
     create-page)
         PARENT_ID="${1:-}"
-        TITLE="${2:-}"
-        CONTENT="${3:-}"
+        TITLE_FILE="${2:-}"
+        CONTENT_FILE="${3:-}"
         
-        if [ -z "$PARENT_ID" ] || [ -z "$TITLE" ] || [ -z "$CONTENT" ]; then
-            echo "Usage: confluence-api.sh create-page <parent_id> <title> <content>" >&2
+        if [ -z "$PARENT_ID" ] || [ -z "$TITLE_FILE" ] || [ -z "$CONTENT_FILE" ]; then
+            echo "Usage: confluence-api.sh create-page <parent_id> <title_file> <content_file>" >&2
+            echo "  title_file:   path to file containing the page title" >&2
+            echo "  content_file: path to file containing the page content (markdown)" >&2
+            exit 1
+        fi
+        
+        if [ ! -f "$TITLE_FILE" ] || [ ! -f "$CONTENT_FILE" ]; then
+            echo "ERROR: Title or content file not found" >&2
             exit 1
         fi
         
@@ -81,60 +88,99 @@ case "$COMMAND" in
         WIN=$(parse_win "$TAB")
         TIDX=$(parse_tab "$TAB")
         
-        # Escape content for JS string (replace quotes, newlines)
-        ESCAPED_TITLE=$(echo "$TITLE" | sed 's/"/\\"/g' | sed ':a;N;$!ba;s/\n/\\n/g')
-        ESCAPED_CONTENT=$(echo "$CONTENT" | sed 's/"/\\"/g' | sed ':a;N;$!ba;s/\n/\\n/g')
+        # Use node to JSON-encode title+content, then base64 for safe transport
+        # through shell → osascript → AppleScript → Chrome JS (zero escaping issues)
+        B64_PAYLOAD=$(node -e "
+            var fs = require('fs');
+            var title = fs.readFileSync('${TITLE_FILE}', 'utf8').trim();
+            var md = fs.readFileSync('${CONTENT_FILE}', 'utf8').trim();
+
+            var lines = md.split('\n');
+            var html = '';
+            var inCodeBlock = false;
+            var inList = false;
+            var listType = '';
+
+            for (var i = 0; i < lines.length; i++) {
+                var line = lines[i];
+                if (line.match(/^\`\`\`/)) {
+                    if (inCodeBlock) {
+                        html += ']]></ac:plain-text-body></ac:structured-macro>';
+                        inCodeBlock = false;
+                    } else {
+                        if (inList) { html += '</' + listType + '>'; inList = false; }
+                        var lang = line.replace(/\`\`\`/, '').trim() || 'text';
+                        html += '<ac:structured-macro ac:name=\"code\"><ac:parameter ac:name=\"language\">' + lang + '</ac:parameter><ac:plain-text-body><![CDATA[';
+                        inCodeBlock = true;
+                    }
+                    continue;
+                }
+                if (inCodeBlock) { html += line + '\n'; continue; }
+                if (line.trim() === '') {
+                    if (inList) { html += '</' + listType + '>'; inList = false; }
+                    continue;
+                }
+                var hMatch = line.match(/^(#{1,6})\s+(.*)/);
+                if (hMatch) {
+                    if (inList) { html += '</' + listType + '>'; inList = false; }
+                    var level = hMatch[1].length;
+                    html += '<h' + level + '>' + fmt(hMatch[2]) + '</h' + level + '>';
+                    continue;
+                }
+                if (line.match(/^\s*[-*]\s+/)) {
+                    var content = line.replace(/^\s*[-*]\s+/, '');
+                    if (!inList || listType !== 'ul') {
+                        if (inList) html += '</' + listType + '>';
+                        html += '<ul>'; inList = true; listType = 'ul';
+                    }
+                    html += '<li>' + fmt(content) + '</li>';
+                    continue;
+                }
+                var olMatch = line.match(/^\s*(\d+)[.)]\s+(.*)/);
+                if (olMatch) {
+                    if (!inList || listType !== 'ol') {
+                        if (inList) html += '</' + listType + '>';
+                        html += '<ol>'; inList = true; listType = 'ol';
+                    }
+                    html += '<li>' + fmt(olMatch[2]) + '</li>';
+                    continue;
+                }
+                if (inList) { html += '</' + listType + '>'; inList = false; }
+                html += '<p>' + fmt(line) + '</p>';
+            }
+            if (inList) html += '</' + listType + '>';
+
+            function fmt(s) {
+                s = s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+                s = s.replace(/\`([^\`]+)\`/g, '<code>\$1</code>');
+                s = s.replace(/\*\*([^*]+)\*\*/g, '<strong>\$1</strong>');
+                s = s.replace(/_([^_]+)_/g, '<em>\$1</em>');
+                return s;
+            }
+
+            process.stdout.write(Buffer.from(JSON.stringify({ title: title, html: html })).toString('base64'));
+        ")
         
-        # Use Confluence REST API v2 to create page
-        # We'll convert markdown to Atlassian Document Format (ADF) via a simple wrapper
-        JS_CODE="
-(async function() {
-    const cloudId = window.location.pathname.split('/')[2];
-    const apiBase = 'https://datadoghq.atlassian.net/wiki/api/v2';
-    
-    // Convert markdown to plain text storage format (simplified)
-    const content = {
-        representation: 'storage',
-        value: '<p>' + decodeURIComponent('${ESCAPED_CONTENT}').replace(/\n\n/g, '</p><p>').replace(/\n/g, '<br/>') + '</p>'
-    };
-    
-    const payload = {
-        spaceId: null,  // will be inherited from parent
-        status: 'current',
-        title: decodeURIComponent('${ESCAPED_TITLE}'),
-        parentId: '${PARENT_ID}',
-        body: content
-    };
-    
-    const response = await fetch(apiBase + '/pages', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json'
-        },
-        credentials: 'include',
-        body: JSON.stringify(payload)
-    });
-    
-    if (!response.ok) {
-        const err = await response.text();
-        return 'ERROR: ' + response.status + ' - ' + err;
-    }
-    
-    const result = await response.json();
-    return 'CREATED: ' + result.id + ' | ' + result._links.webui;
-})();
-        "
+        if [ -z "$B64_PAYLOAD" ]; then
+            echo "ERROR: Failed to encode content" >&2
+            exit 1
+        fi
         
-        chrome_js "$WIN" "$TIDX" "$JS_CODE"
+        chrome_js "$WIN" "$TIDX" "var b64 = '${B64_PAYLOAD}'; var bytes = Uint8Array.from(atob(b64), function(c) { return c.charCodeAt(0); }); var decoded = new TextDecoder('utf-8').decode(bytes); var data = JSON.parse(decoded); var xhr = new XMLHttpRequest(); xhr.open('GET', '/wiki/api/v2/pages/${PARENT_ID}', false); xhr.send(); if (xhr.status !== 200) { 'ERROR: GET parent ' + xhr.status; } else { var parent = JSON.parse(xhr.responseText); var spaceId = parent.spaceId; var payload = JSON.stringify({ spaceId: spaceId, status: 'current', title: data.title, parentId: '${PARENT_ID}', body: { representation: 'storage', value: data.html } }); var xhr2 = new XMLHttpRequest(); xhr2.open('POST', '/wiki/api/v2/pages', false); xhr2.setRequestHeader('Content-Type', 'application/json'); xhr2.setRequestHeader('Accept', 'application/json'); xhr2.send(payload); if (xhr2.status >= 200 && xhr2.status < 300) { var result = JSON.parse(xhr2.responseText); var xp = new XMLHttpRequest(); xp.open('POST', '/wiki/rest/api/content/' + result.id + '/property', false); xp.setRequestHeader('Content-Type', 'application/json'); xp.send(JSON.stringify({key:'content-appearance-published',value:{appearance:'full-width'},version:{number:1}})); 'CREATED: ' + result.id + ' | ' + (result._links ? result._links.webui : ''); } else { 'ERROR: POST ' + xhr2.status + ' ' + xhr2.responseText.substring(0, 200); } }"
         ;;
     
     update-page)
         PAGE_ID="${1:-}"
-        CONTENT="${2:-}"
+        CONTENT_FILE="${2:-}"
         
-        if [ -z "$PAGE_ID" ] || [ -z "$CONTENT" ]; then
-            echo "Usage: confluence-api.sh update-page <page_id> <content>" >&2
+        if [ -z "$PAGE_ID" ] || [ -z "$CONTENT_FILE" ]; then
+            echo "Usage: confluence-api.sh update-page <page_id> <content_file>" >&2
+            echo "  content_file: path to file containing the page content (markdown)" >&2
+            exit 1
+        fi
+        
+        if [ ! -f "$CONTENT_FILE" ]; then
+            echo "ERROR: Content file not found: $CONTENT_FILE" >&2
             exit 1
         fi
         
@@ -142,55 +188,82 @@ case "$COMMAND" in
         WIN=$(parse_win "$TAB")
         TIDX=$(parse_tab "$TAB")
         
-        ESCAPED_CONTENT=$(echo "$CONTENT" | sed 's/"/\\"/g' | sed ':a;N;$!ba;s/\n/\\n/g')
+        B64_PAYLOAD=$(node -e "
+            var fs = require('fs');
+            var md = fs.readFileSync('${CONTENT_FILE}', 'utf8').trim();
+
+            var lines = md.split('\n');
+            var html = '';
+            var inCodeBlock = false;
+            var inList = false;
+            var listType = '';
+
+            for (var i = 0; i < lines.length; i++) {
+                var line = lines[i];
+                if (line.match(/^\`\`\`/)) {
+                    if (inCodeBlock) {
+                        html += ']]></ac:plain-text-body></ac:structured-macro>';
+                        inCodeBlock = false;
+                    } else {
+                        if (inList) { html += '</' + listType + '>'; inList = false; }
+                        var lang = line.replace(/\`\`\`/, '').trim() || 'text';
+                        html += '<ac:structured-macro ac:name=\"code\"><ac:parameter ac:name=\"language\">' + lang + '</ac:parameter><ac:plain-text-body><![CDATA[';
+                        inCodeBlock = true;
+                    }
+                    continue;
+                }
+                if (inCodeBlock) { html += line + '\n'; continue; }
+                if (line.trim() === '') {
+                    if (inList) { html += '</' + listType + '>'; inList = false; }
+                    continue;
+                }
+                var hMatch = line.match(/^(#{1,6})\s+(.*)/);
+                if (hMatch) {
+                    if (inList) { html += '</' + listType + '>'; inList = false; }
+                    var level = hMatch[1].length;
+                    html += '<h' + level + '>' + fmt(hMatch[2]) + '</h' + level + '>';
+                    continue;
+                }
+                if (line.match(/^\s*[-*]\s+/)) {
+                    var content = line.replace(/^\s*[-*]\s+/, '');
+                    if (!inList || listType !== 'ul') {
+                        if (inList) html += '</' + listType + '>';
+                        html += '<ul>'; inList = true; listType = 'ul';
+                    }
+                    html += '<li>' + fmt(content) + '</li>';
+                    continue;
+                }
+                var olMatch = line.match(/^\s*(\d+)[.)]\s+(.*)/);
+                if (olMatch) {
+                    if (!inList || listType !== 'ol') {
+                        if (inList) html += '</' + listType + '>';
+                        html += '<ol>'; inList = true; listType = 'ol';
+                    }
+                    html += '<li>' + fmt(olMatch[2]) + '</li>';
+                    continue;
+                }
+                if (inList) { html += '</' + listType + '>'; inList = false; }
+                html += '<p>' + fmt(line) + '</p>';
+            }
+            if (inList) html += '</' + listType + '>';
+
+            function fmt(s) {
+                s = s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+                s = s.replace(/\`([^\`]+)\`/g, '<code>\$1</code>');
+                s = s.replace(/\*\*([^*]+)\*\*/g, '<strong>\$1</strong>');
+                s = s.replace(/_([^_]+)_/g, '<em>\$1</em>');
+                return s;
+            }
+
+            process.stdout.write(Buffer.from(JSON.stringify({ html: html })).toString('base64'));
+        ")
         
-        JS_CODE="
-(async function() {
-    const apiBase = 'https://datadoghq.atlassian.net/wiki/api/v2';
-    
-    // Get current version
-    const getResp = await fetch(apiBase + '/pages/${PAGE_ID}', {
-        credentials: 'include'
-    });
-    const current = await getResp.json();
-    
-    const content = {
-        representation: 'storage',
-        value: '<p>' + decodeURIComponent('${ESCAPED_CONTENT}').replace(/\n\n/g, '</p><p>').replace(/\n/g, '<br/>') + '</p>'
-    };
-    
-    const payload = {
-        id: '${PAGE_ID}',
-        status: 'current',
-        title: current.title,
-        body: content,
-        version: {
-            number: current.version.number + 1,
-            message: 'Updated via automation'
-        }
-    };
-    
-    const response = await fetch(apiBase + '/pages/${PAGE_ID}', {
-        method: 'PUT',
-        headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json'
-        },
-        credentials: 'include',
-        body: JSON.stringify(payload)
-    });
-    
-    if (!response.ok) {
-        const err = await response.text();
-        return 'ERROR: ' + response.status + ' - ' + err;
-    }
-    
-    const result = await response.json();
-    return 'UPDATED: ' + result.id + ' | ' + result._links.webui;
-})();
-        "
+        if [ -z "$B64_PAYLOAD" ]; then
+            echo "ERROR: Failed to encode content" >&2
+            exit 1
+        fi
         
-        chrome_js "$WIN" "$TIDX" "$JS_CODE"
+        chrome_js "$WIN" "$TIDX" "var b64 = '${B64_PAYLOAD}'; var bytes = Uint8Array.from(atob(b64), function(c) { return c.charCodeAt(0); }); var decoded = new TextDecoder('utf-8').decode(bytes); var data = JSON.parse(decoded); var xhr = new XMLHttpRequest(); xhr.open('GET', '/wiki/api/v2/pages/${PAGE_ID}', false); xhr.send(); if (xhr.status !== 200) { 'ERROR: GET ' + xhr.status; } else { var current = JSON.parse(xhr.responseText); var payload = JSON.stringify({ id: '${PAGE_ID}', status: 'current', title: current.title, body: { representation: 'storage', value: data.html }, version: { number: current.version.number + 1, message: 'Updated via automation' } }); var xhr2 = new XMLHttpRequest(); xhr2.open('PUT', '/wiki/api/v2/pages/${PAGE_ID}', false); xhr2.setRequestHeader('Content-Type', 'application/json'); xhr2.setRequestHeader('Accept', 'application/json'); xhr2.send(payload); if (xhr2.status >= 200 && xhr2.status < 300) { var result = JSON.parse(xhr2.responseText); var xg = new XMLHttpRequest(); xg.open('GET', '/wiki/rest/api/content/${PAGE_ID}/property/content-appearance-published', false); xg.send(); if (xg.status === 200) { var prop = JSON.parse(xg.responseText); if (!prop.value || prop.value.appearance !== 'full-width') { var xp = new XMLHttpRequest(); xp.open('PUT', '/wiki/rest/api/content/${PAGE_ID}/property/content-appearance-published', false); xp.setRequestHeader('Content-Type', 'application/json'); xp.send(JSON.stringify({key:'content-appearance-published',value:{appearance:'full-width'},version:{number:prop.version.number+1}})); } } else { var xp = new XMLHttpRequest(); xp.open('POST', '/wiki/rest/api/content/${PAGE_ID}/property', false); xp.setRequestHeader('Content-Type', 'application/json'); xp.send(JSON.stringify({key:'content-appearance-published',value:{appearance:'full-width'},version:{number:1}})); } 'UPDATED: ' + result.id + ' | ' + (result._links ? result._links.webui : ''); } else { 'ERROR: PUT ' + xhr2.status + ' ' + xhr2.responseText.substring(0, 200); } }"
         ;;
     
     get-page)
@@ -205,23 +278,7 @@ case "$COMMAND" in
         WIN=$(parse_win "$TAB")
         TIDX=$(parse_tab "$TAB")
         
-        JS_CODE="
-(async function() {
-    const apiBase = 'https://datadoghq.atlassian.net/wiki/api/v2';
-    const response = await fetch(apiBase + '/pages/${PAGE_ID}?body-format=storage', {
-        credentials: 'include'
-    });
-    
-    if (!response.ok) {
-        return 'ERROR: ' + response.status;
-    }
-    
-    const result = await response.json();
-    return result.title + ' | ' + result.body.storage.value;
-})();
-        "
-        
-        chrome_js "$WIN" "$TIDX" "$JS_CODE"
+        chrome_js "$WIN" "$TIDX" "var xhr = new XMLHttpRequest(); xhr.open('GET', '/wiki/api/v2/pages/${PAGE_ID}?body-format=storage', false); xhr.send(); if (xhr.status === 200) { var result = JSON.parse(xhr.responseText); result.title + ' | ' + result.body.storage.value; } else { 'ERROR: ' + xhr.status; }"
         ;;
     
     help|*)
@@ -232,7 +289,7 @@ Usage: confluence-api.sh <command> [args...]
 
 Commands:
   tab                                    Find Confluence tab in Chrome
-  create-page <parent_id> <title> <content>   Create child page
+  create-page <parent_id> <title_file> <content_file>   Create child page (reads from files)
   update-page <page_id> <content>       Update page content
   get-page <page_id>                    Get page content
 
@@ -241,8 +298,10 @@ Prerequisites:
   - "Allow JavaScript from Apple Events" must be enabled in Chrome (Developer menu)
 
 Examples:
-  # Create a RAG entry
-  confluence-api.sh create-page 6310658850 "[JMX/Kafka] Missing metrics" "## Symptoms..."
+  # Create a RAG entry (write title and content to files first)
+  echo "[JMX/Kafka] Missing metrics" > /tmp/title.txt
+  echo "## Symptoms..." > /tmp/content.txt
+  confluence-api.sh create-page 6310658850 /tmp/title.txt /tmp/content.txt
   
   # Update existing page
   confluence-api.sh update-page 1234567890 "Updated content..."
