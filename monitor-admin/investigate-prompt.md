@@ -10,8 +10,8 @@ If MCP tools are unavailable, tell the user to run `setup.sh` from the skill dir
 ## Step 1: Parse Input
 
 The user will provide some combination of:
-- **org_id**: The customer's organization ID (numeric, e.g., `1000024061`)
-- **monitor_id**: The monitor being investigated (numeric, e.g., `22002922`)
+- **org_id**: The customer's organization ID (numeric, e.g., `1234567890`)
+- **monitor_id**: The monitor being investigated (numeric, e.g., `12345678`)
 - **time range**: When the issue occurred — convert to **UTC ISO 8601** before calling APIs. Ask for timezone if unclear.
 - **group query**: Optional specific group to focus on (e.g., `jet_tenant:de,statuscode:503`)
 - **cluster**: Derive automatically from org_id (see Cluster Lookup below)
@@ -123,12 +123,12 @@ Be precise with numbers. Always show the actual value, threshold, and margin whe
 
 ## Example
 
-User: "Why did monitor 22002922 trigger for org 1000024061 on eu1 around Feb 12, 11:25 AM UTC for group jet_tenant:de,statuscode:503?"
+User: "Why did monitor 12345678 trigger for org 1234567890 on eu1 around Feb 12, 11:25 AM UTC for group env:prod,service:web?"
 
-1. Derive cluster: org_id 1000024061 → eu1
+1. Derive cluster: org_id 1234567890 → eu1
 2. `monitor_get_state` → Monitor currently OK, 96 groups
 3. `monitor_get_results` from 10:15 to 12:30 UTC → Find result at 11:27 where ALERT count = 1
-4. `monitor_get_result_detail` for that result, `group_filter: "statuscode:503"`:
+4. `monitor_get_result_detail` for that result, `group_filter: "service:web"`:
    - Query: `anomalies(sum:my.metric{*} by {group}.as_count(), ...)`, comparator: `>=`
    - Value was 1.5, threshold is 1.0 — margin: -0.5 (-50%) → triggered because error rate exceeded threshold by 50%
 5. Check surrounding evaluations → at 11:28 margin was +0.3 (recovered); pattern shows a 1-minute spike

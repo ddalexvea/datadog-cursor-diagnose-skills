@@ -23,7 +23,7 @@ Triggers: "why did monitor trigger", "monitor didn't fire", "investigate monitor
 
 ## How to Use
 
-1. Say: **"why did monitor 22002922 trigger for org 1000024061 around Feb 12, 11:25 AM UTC"**
+1. Say: **"why did monitor 12345678 trigger for org 1234567890 around Feb 12, 11:25 AM UTC"**
 2. Or paste a Monitor Admin URL directly:
    `https://monitor-admin.eu1.prod.dog/monitors/cluster/realtime/org/{org_id}/monitor/{monitor_id}?from_ts=...&to_ts=...`
 3. The agent reads this skill, follows `investigate-prompt.md`, and provides a full root cause analysis
