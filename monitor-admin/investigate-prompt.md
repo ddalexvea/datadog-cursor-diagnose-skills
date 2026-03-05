@@ -13,7 +13,7 @@ The user will provide some combination of:
 - **org_id**: The customer's organization ID (numeric, e.g., `1234567890`)
 - **monitor_id**: The monitor being investigated (numeric, e.g., `12345678`)
 - **time range**: When the issue occurred — convert to **UTC ISO 8601** before calling APIs. Ask for timezone if unclear.
-- **group query**: Optional specific group to focus on (e.g., `jet_tenant:de,statuscode:503`)
+- **group query**: Optional specific group to focus on (e.g., `test_tenant:de,statuscode:503`)
 - **cluster**: Derive automatically from org_id (see Cluster Lookup below)
 - **Monitor Admin URL**: Parse org_id, monitor_id, cluster, time range (from_ts/to_ts are millisecond unix timestamps), and group_name from URLs like:
   `https://monitor-admin.eu1.prod.dog/monitors/cluster/realtime/org/{org_id}/monitor/{monitor_id}?from_ts=...&to_ts=...&group_name=...`
