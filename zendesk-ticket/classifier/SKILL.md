@@ -1,6 +1,8 @@
 ---
 name: zendesk-ticket-classifier
 description: Classify a Zendesk ticket by nature (bug, question, feature request, incident, etc.) with confirmation checks. Use when the user mentions classify ticket, ticket type, ticket nature, what kind of ticket, categorize ticket, or triage ticket.
+kanban: true
+kanban_columns: triage
 ---
 
 # Ticket Classifier

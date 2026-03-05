@@ -1,6 +1,7 @@
 ---
 name: zendesk-ticket-tldr
 description: Generate TLDR summaries for all assigned tickets (open, pending, on hold) where you have already responded. Uses Chrome JS (real-time) as primary, Glean MCP as fallback. Use when the user asks for ticket summaries, TLDR, status update, standup notes, or handoff notes.
+kanban: false
 ---
 
 # Ticket TLDR Generator

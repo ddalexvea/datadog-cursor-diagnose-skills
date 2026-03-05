@@ -1,6 +1,8 @@
 ---
 name: zendesk-ticket-escalation-creator
 description: Create Jira escalation tickets from investigation findings. Use when the user says "escalate ticket #XYZ", "create jira for #XYZ", "file bug for #XYZ", or when reproduction confirms a bug.
+kanban: true
+kanban_columns: investigation
 ---
 
 # Jira Escalation Creator

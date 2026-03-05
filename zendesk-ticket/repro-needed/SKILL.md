@@ -1,6 +1,8 @@
 ---
 name: zendesk-ticket-repro-needed
 description: Evaluate whether a Zendesk ticket needs reproduction. Reads the ticket, checks if the answer is already available from docs/past tickets, and if reproduction is needed, suggests the environment type. Use when the user mentions reproduce, repro needed, should I reproduce, need reproduction, or after a ticket investigation.
+kanban: true
+kanban_columns: investigation
 ---
 
 # Evaluate Need of Reproduction

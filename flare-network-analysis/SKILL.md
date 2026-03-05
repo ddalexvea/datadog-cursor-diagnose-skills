@@ -1,6 +1,8 @@
 ---
 name: flare-network-analysis
 description: Analyze a locally extracted Datadog Agent flare for network/connectivity issues related to the agent forwarder and intake endpoints. Use when the user asks to analyze a flare for network issues, forwarder problems, packet loss, connectivity errors, or intake failures.
+kanban: true
+kanban_columns: investigation
 ---
 
 # Flare Network Analysis

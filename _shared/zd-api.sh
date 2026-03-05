@@ -153,11 +153,17 @@ case "$COMMAND" in
         chrome_js "$(parse_win "$TAB")" "$(parse_tab "$TAB")" "var xhr = new XMLHttpRequest(); xhr.open('GET', '/api/v2/tickets/${TICKET_ID}/comments.json', false); xhr.send(); if (xhr.status === 200) { var data = JSON.parse(xhr.responseText); var attachments = []; data.comments.forEach(function(c) { if (c.attachments) { c.attachments.forEach(function(a) { attachments.push(a.file_name + ' | ' + Math.round(a.size/1024/1024*100)/100 + ' MB | ' + a.content_type + ' | ' + a.content_url); }); } }); attachments.length > 0 ? attachments.join('\\\\n') : 'NO_ATTACHMENTS'; } else { 'ERROR: HTTP ' + xhr.status; }"
         ;;
 
+    chat_messages)
+        TICKET_ID="${1:?Usage: zd-api.sh chat_messages <ID>}"
+        TAB=$(require_tab)
+        chrome_js "$(parse_win "$TAB")" "$(parse_tab "$TAB")" "var xhr = new XMLHttpRequest(); xhr.open('GET', '/api/v2/tickets/${TICKET_ID}/conversation_log?sort=created_at', false); xhr.send(); if (xhr.status === 200) { var data = JSON.parse(xhr.responseText); var msgs = []; data.events.forEach(function(e, i) { var author = (e.author && e.author.display_name) || 'unknown'; var atype = (e.author && e.author.type) || 'unknown'; var body = ''; if (e.content && e.content.body) { body = e.content.body.replace(/<[^>]*>/g, '').trim(); } else if (e.content && e.content.text) { body = e.content.text; } if (body.length > 0) { msgs.push('[' + (i+1) + '] ' + atype + ' | ' + author + ' | ' + e.created_at + ' | ' + body.substring(0, 500)); } }); 'CHAT_LOG: ' + msgs.length + '\\\\n' + msgs.join('\\\\n---\\\\n'); } else { 'ERROR: HTTP ' + xhr.status; }"
+        ;;
+
     download)
         URL="${1:?Usage: zd-api.sh download <URL> <FILENAME>}"
         FILENAME="${2:?Usage: zd-api.sh download <URL> <FILENAME>}"
         TAB=$(require_tab)
-        chrome_js "$(parse_win "$TAB")" "$(parse_tab "$TAB")" "var a=document.createElement('a');a.href='${URL}';a.download='${FILENAME}';document.body.appendChild(a);a.click();document.body.removeChild(a);'Download triggered: ${FILENAME}'"
+        chrome_js "$(parse_win "$TAB")" "$(parse_tab "$TAB")" "fetch('${URL}').then(function(r){return r.blob()}).then(function(b){var u=URL.createObjectURL(b);var a=document.createElement('a');a.href=u;a.download='${FILENAME}';a.click();URL.revokeObjectURL(u);});'Download triggered: ${FILENAME}'"
         ;;
 
     help|*)

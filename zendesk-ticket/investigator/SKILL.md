@@ -1,6 +1,8 @@
 ---
 name: zendesk-ticket-investigator
 description: Investigate a Zendesk ticket by reading its content, searching for similar past tickets, checking internal docs, and gathering customer context. Use when the user mentions investigate ticket, look into ticket, ticket investigation, analyze ticket, or provides a Zendesk ticket number to investigate.
+kanban: true
+kanban_columns: investigation
 ---
 
 # Ticket Investigator

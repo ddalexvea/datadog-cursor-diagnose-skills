@@ -1,6 +1,8 @@
 ---
 name: flare-profiling-analysis
 description: Analyze Go profiling data (pprof) from a locally extracted Datadog Agent flare to identify memory leaks, CPU hotspots, and contention issues. Produces a structured report with heap diffs, top consumers, and an escalation-ready summary.
+kanban: true
+kanban_columns: investigation
 ---
 
 # Flare Profiling Analysis

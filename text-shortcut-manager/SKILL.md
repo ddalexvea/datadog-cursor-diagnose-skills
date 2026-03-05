@@ -1,6 +1,7 @@
 ---
 name: text-shortcut-manager
 description: Detect recurring phrases from Cursor transcripts and manage espanso text shortcuts. Use when the user asks to scan patterns, add a text shortcut, list shortcuts, install espanso, or optimize their typing workflow.
+kanban: false
 ---
 
 # Text Shortcut Manager

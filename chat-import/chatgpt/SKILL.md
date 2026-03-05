@@ -1,6 +1,7 @@
 ---
 name: chatgpt-import
 description: Import ChatGPT conversations to local markdown files for Cursor context. Uses Chrome JS to extract conversations from an open chatgpt.com tab. Use when the user mentions import chatgpt, chatgpt history, transfer chatgpt, chatgpt conversations, or bring chatgpt chats to cursor.
+kanban: false
 ---
 
 # ChatGPT Chat Importer

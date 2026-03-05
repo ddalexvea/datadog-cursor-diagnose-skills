@@ -1,6 +1,8 @@
 ---
 name: zendesk-ticket-slack-question-formatter
 description: Format investigation findings into a ready-to-paste Slack question for spec teams. Use when the user says "ask spec about #XYZ", "format slack question", "slack message for ticket", or after investigation/reproduction when you need internal guidance.
+kanban: true
+kanban_columns: triage,investigation
 ---
 
 # Slack Question Formatter

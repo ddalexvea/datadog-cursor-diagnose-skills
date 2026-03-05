@@ -1,6 +1,7 @@
 ---
 name: zendesk-ticket-watcher
 description: Background ticket watcher that monitors Zendesk for new assignments, investigates them inline, and sends macOS notifications. Uses Chrome JS (real-time) as primary detection method, Glean MCP as fallback. Use when the user mentions ticket watcher, background investigation, auto-investigate, or ticket monitoring.
+kanban: false
 ---
 
 # Ticket Watcher

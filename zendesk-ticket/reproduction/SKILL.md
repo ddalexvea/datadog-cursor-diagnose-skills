@@ -1,6 +1,8 @@
 ---
 name: zendesk-ticket-reproduction
 description: Reproduce a Zendesk ticket issue in a sandbox environment. Picks the simplest tier (CLI/curl, local process, Docker, or minikube), sets up the environment, reproduces the behavior, tests workarounds, and documents findings in investigations/ZD-{id}.md. Use when the user mentions reproduce, create sandbox, build sandbox, test this issue, or when triggered by Kanban Reproduction column.
+kanban: true
+kanban_columns: reproduction
 ---
 
 # Reproduce Ticket Issue

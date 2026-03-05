@@ -1,6 +1,8 @@
 ---
 name: flare-general-analysis
 description: Comprehensive flare analysis covering health check, config review, issue-specific diagnostics, and integration version checks. Use when the user says "analyze flare", "full flare analysis", "diagnose flare", or after downloading a flare from a ticket.
+kanban: true
+kanban_columns: investigation
 ---
 
 # Flare General Analysis
