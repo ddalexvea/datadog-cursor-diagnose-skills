@@ -1,6 +1,8 @@
 ---
 name: zendesk-ticket-difficulty
 description: Estimate ticket difficulty on a 1-10 scale by analyzing the issue type, product area, environment complexity, and whether reproduction or escalation is likely needed. Use when the user mentions difficulty, how hard, ticket score, rate ticket, or after ticket-pool to rank the queue.
+kanban: true
+kanban_columns: triage
 ---
 
 # Estimate Ticket Difficulty

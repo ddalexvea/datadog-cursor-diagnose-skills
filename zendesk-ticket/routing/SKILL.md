@@ -1,6 +1,8 @@
 ---
 name: ticket-routing
 description: Identify which TS specialization and engineering team owns a ticket topic. Use when the user asks about ticket routing, spec ownership, which team handles a topic, who owns a product area, which spec a ticket belongs to, or wants to know the right Slack channel for a ticket. Also triggers on patterns like "which spec {ticket_id}", "route ticket {id}", or when the user shares a Zendesk ticket URL.
+kanban: true
+kanban_columns: triage
 ---
 
 # Ticket Routing Intelligence

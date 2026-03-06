@@ -1,6 +1,7 @@
 ---
 name: zendesk-ticket-pool
 description: Check and display the current Zendesk ticket pool assigned to the user. Uses Chrome JS execution (real-time, no delay) as primary method, with Glean MCP as fallback. Use when the user asks about their ticket queue, open tickets, pending tickets, ticket pool, ticket status, workload, or wants to see what tickets need attention. This skill should be used proactively at the start of conversations when working in the TSE workspace.
+kanban: false
 ---
 
 # Zendesk Ticket Pool Checker

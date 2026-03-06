@@ -8,7 +8,104 @@ Reproduce the issue from Zendesk ticket #{{TICKET_ID}} in a sandbox environment.
 
 If the output contains `ai_optout:true`, **STOP NOW**. Tell the user: "Ticket #{{TICKET_ID}}: AI processing is blocked — this customer has opted out of GenAI (oai_opted_out). Handle manually without AI." Do NOT proceed to any further steps.
 
-## Phase 1: Read Investigation Context
+## Phase 1: Download Customer Attachments
+
+Download config files, manifests, and flares that the customer attached to the ticket. These are critical for accurate reproduction.
+
+### List attachments
+```bash
+osascript -e '
+tell application "Google Chrome"
+  set zenTab to missing value
+  repeat with w in windows
+    repeat with t in tabs of w
+      if URL of t contains "zendesk.com" then
+        set zenTab to t
+        exit repeat
+      end if
+    end repeat
+    if zenTab is not missing value then exit repeat
+  end repeat
+  if zenTab is missing value then return "ERROR: No Zendesk tab found in Chrome"
+  execute zenTab javascript "
+    (function() {
+      var xhr = new XMLHttpRequest();
+      xhr.open(\"GET\", \"/api/v2/tickets/{{TICKET_ID}}/comments.json?include=users\", false);
+      xhr.send();
+      if (xhr.status !== 200) return \"ERROR: \" + xhr.status;
+      var data = JSON.parse(xhr.responseText);
+      var atts = [];
+      data.comments.forEach(function(c) {
+        (c.attachments || []).forEach(function(a) {
+          atts.push(a.file_name + \"|\" + a.size + \"|\" + a.content_type + \"|\" + a.content_url);
+        });
+      });
+      return atts.length ? atts.join(\"\\n\") : \"NO_ATTACHMENTS\";
+    })()
+  "
+end tell'
+```
+
+### Download relevant files
+Focus on files that help reproduce the issue:
+- **Config files**: `.yaml`, `.yml`, `.conf`, `.json`, `.toml` — customer's actual configuration
+- **Manifests**: Kubernetes manifests, Helm values, docker-compose files
+- **Agent flares**: `.zip` files containing `datadog-agent-*` — extract to get the real agent config
+- **Log files**: `.log`, `.txt` — for understanding the actual error
+
+Skip screenshots, images, and unrelated files.
+
+For each relevant attachment, download it:
+```bash
+osascript -e '
+tell application "Google Chrome"
+  set zenTab to missing value
+  repeat with w in windows
+    repeat with t in tabs of w
+      if URL of t contains "zendesk.com" then
+        set zenTab to t
+        exit repeat
+      end if
+    end repeat
+    if zenTab is not missing value then exit repeat
+  end repeat
+  execute zenTab javascript "
+    (function() {
+      var a = document.createElement(\"a\");
+      a.href = \"CONTENT_URL_HERE\";
+      a.download = \"FILENAME_HERE\";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      return \"Download triggered: FILENAME_HERE\";
+    })()
+  "
+end tell'
+```
+
+Wait for downloads to complete, then check:
+```bash
+ls -la ~/Downloads/FILENAME_HERE
+```
+
+### Extract agent flare (if downloaded)
+If an agent flare `.zip` was downloaded:
+```bash
+mkdir -p /tmp/flare-zd-{{TICKET_ID}}
+unzip -o ~/Downloads/FLARE_FILENAME.zip -d /tmp/flare-zd-{{TICKET_ID}}
+```
+
+Key files to extract from the flare for reproduction:
+- `etc/datadog-agent/datadog.yaml` — main agent config
+- `etc/datadog-agent/conf.d/` — integration configs (the ones relevant to the issue)
+- `status.log` — agent status at time of flare
+- `config-check.log` — active check configurations
+
+Use these to replicate the customer's exact configuration in your sandbox.
+
+If no relevant attachments are found, proceed without them — use the investigation report for context.
+
+## Phase 2: Read Investigation Context
 
 Read the investigation report to understand what needs reproducing:
 
@@ -22,10 +119,11 @@ Extract and note:
 - The `## Investigation Decision` — should indicate `Next: reproduction`
 - Any specific config or behavior to reproduce
 - Agent version the customer uses (if mentioned)
+- Cross-reference with any downloaded attachments from Phase 1
 
-If `## Reproduction Review History` exists and contains feedback, this is a re-run. Skip to Phase 11.
+If `## Reproduction Review History` exists and contains feedback, this is a re-run. Skip to Phase 12.
 
-## Phase 2: Determine Reproduction Tier
+## Phase 3: Determine Reproduction Tier
 
 Walk the decision tree from SKILL.md:
 
@@ -44,7 +142,7 @@ Walk the decision tree from SKILL.md:
 5. **Does it require k8s features?**
    - Autodiscovery, Cluster Agent, Operator, pod labels/tags, Helm values → **Tier 4 (minikube)**.
 
-## Phase 3: Search Existing Sandboxes
+## Phase 4: Search Existing Sandboxes
 
 Look for similar setups to adapt rather than building from scratch:
 
@@ -74,7 +172,7 @@ app: confluence
 
 If a similar sandbox is found, adapt it. If not, generate a new one using the structure from [datadog-sandbox-readme-template](https://github.com/ddalexvea/datadog-sandbox-readme-template).
 
-## Phase 4: Retrieve Credentials
+## Phase 5: Retrieve Credentials
 
 For ALL tiers, get the Datadog credentials:
 
@@ -102,7 +200,7 @@ print('OK — sandbox org confirmed')
 
 If the org check fails, **STOP** and set `Status: blocked` with `Blocker: Credentials do not point to sandbox org`.
 
-## Phase 5: Setup Environment (tier-specific)
+## Phase 6: Setup Environment (tier-specific)
 
 ### Tier 1 — CLI/curl
 No environment setup needed. Proceed directly to Phase 7 using curl commands.
@@ -178,7 +276,7 @@ MANIFEST
 kubectl wait --for=condition=ready pod -l app=APP_NAME -n sandbox-zd-{{TICKET_ID}} --timeout=300s
 ```
 
-## Phase 6: Deploy Datadog Agent
+## Phase 7: Deploy Datadog Agent
 
 ### Tier 1-2
 For CLI/local tiers, use the API keys directly in curl commands or configure the local agent. No Helm needed.
@@ -229,7 +327,7 @@ kubectl rollout status daemonset/dd-zd-{{TICKET_ID}}-datadog \
   -n datadog-zd-{{TICKET_ID}} --timeout=300s
 ```
 
-## Phase 7: Verify Agent + Data Flow
+## Phase 8: Verify Agent + Data Flow
 
 ### Tier 1 — curl
 Verify API calls work:
@@ -271,7 +369,7 @@ curl -s -X POST "https://api.datadoghq.com/api/v2/logs/events/search" \
   -d '{"filter":{"query":"*","from":"now-15m","to":"now"},"page":{"limit":5}}'
 ```
 
-## Phase 8: Reproduce the Issue
+## Phase 9: Reproduce the Issue
 
 Execute the specific behavior described in the ticket:
 
@@ -280,7 +378,7 @@ Execute the specific behavior described in the ticket:
 3. Capture the output — both expected and actual behavior
 4. Save CLI output and API query results as text evidence
 
-## Phase 9: Test Workaround/Fix
+## Phase 10: Test Workaround/Fix
 
 If the investigation identified a potential workaround or fix:
 
@@ -291,7 +389,7 @@ If the investigation identified a potential workaround or fix:
 
 If no workaround was identified, note that in findings and suggest what to try.
 
-## Phase 10: Document Findings
+## Phase 11: Document Findings
 
 Write ALL findings into `investigations/ZD-{{TICKET_ID}}.md` under a `## Reproduction` section.
 
@@ -358,7 +456,7 @@ Then write the `## Reproduction Decision`:
 - **NEVER execute cleanup commands automatically** — TSE may want to inspect the running environment
 - Only the TSE decides when to clean up
 
-## Phase 11: Blocker Handling
+## Phase 12: Blocker Handling
 
 If at any point the agent cannot proceed:
 
@@ -373,7 +471,7 @@ If at any point the agent cannot proceed:
    - Non-reproducible issue type (login, billing)
    - Requires specific license or feature flag
 
-## Phase 12: Review Feedback Handling (Re-run)
+## Phase 13: Review Feedback Handling (Re-run)
 
 This phase runs when the TSE provides feedback via the Reproduction tab.
 

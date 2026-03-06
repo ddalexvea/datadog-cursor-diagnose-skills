@@ -1,6 +1,8 @@
 ---
 name: zendesk-ticket-info-needed
 description: Estimate what customer info is still needed to resolve a Zendesk ticket. Reads all ticket comments, identifies the product area, fetches relevant troubleshooting guides from Confluence, and produces an internal analysis plus a customer-ready message. Use when the user mentions info needed, what to ask, missing info, customer info, estimate info, what do I need from the customer, or provides a ticket to triage.
+kanban: true
+kanban_columns: triage,investigation
 ---
 
 # Estimate Needed Customer Info

@@ -1,6 +1,7 @@
 ---
 name: snagit-screen-record
 description: Start a Snagit screen recording via voice or text commands. Use when the user says "start recording", "record screen", "capture video", or mentions Snagit recording.
+kanban: false
 ---
 
 # Snagit Screen Record

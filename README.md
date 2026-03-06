@@ -63,6 +63,8 @@ The `zd-api.sh` helper filters and compacts API responses to minimize token cons
 │   └── attachment-downloader/      Download flares & attachments
 ├── flare-network-analysis/         Forwarder/intake connectivity analysis
 ├── flare-profiling-analysis/       Go pprof analysis
+├── logs-investigator/              HQ (Org 2) log search across 7 topic groups (Datadog extension)
+│   └── setup.sh                    Installs Datadog extension + registers MCP endpoint
 ├── monitor-admin/                  Monitor triggering investigation (VPN-gated, MCP server)
 │   └── mcp-server/                 Node.js MCP server for Monitor Admin APIs
 ├── snagit-screen-record/           Screen recording via Snagit
@@ -95,6 +97,12 @@ The `zd-api.sh` helper filters and compacts API responses to minimize token cons
 |-------|-------------|---------|
 | `flare-network-analysis` | Analyze agent flare for forwarder/intake connectivity — transaction stats, error breakdown, diagnose.log, verdict | "analyze flare network" |
 | `flare-profiling-analysis` | Analyze Go profiling (pprof) from flare — heap diffs, CPU hotspots, block/mutex contention, escalation summary | "analyze flare profiling" |
+
+### Log Investigation Skills
+
+| Skill | Description | Trigger |
+|-------|-------------|---------|
+| `logs-investigator` | Search Datadog HQ (Org 2) logs — login issues, email delivery, audit history, monitor alerts, integrations, Synthetics | "search HQ logs", "check org 2 logs", "why wasn't the alert sent" |
 
 ### Monitor Investigation Skills (VPN-gated)
 
@@ -242,6 +250,15 @@ git clone https://github.com/ddalexvea/datadog-cursor-diagnose-skills.git ~/.cur
 ```
 
 Cursor automatically discovers skills from `~/.cursor/skills/**/SKILL.md` (supports nested directories).
+
+When you open this repo in Cursor, you will see a **"Install Recommended Extensions"** notification — click it to install the Datadog extension automatically. This is driven by `.cursor/extensions.json` in the repo root.
+
+For skills with additional one-time setup, run the `setup.sh` in that skill's folder:
+
+```bash
+# Logs Investigator (Datadog extension + MCP endpoint)
+~/.cursor/skills/logs-investigator/setup.sh
+```
 
 ### Prerequisites
 

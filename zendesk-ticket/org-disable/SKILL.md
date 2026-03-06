@@ -1,6 +1,8 @@
 ---
 name: zendesk-org-disable
 description: Handle Datadog org disable requests end-to-end. Reads the ticket, determines account type and org structure, identifies CSM, generates a step-by-step workflow with copy-paste messages. Auto-triggers when ticket type is account_disable or when user says disable org, close account, delete org, decommission org.
+kanban: true
+kanban_columns: triage
 ---
 
 # Org Disable Workflow

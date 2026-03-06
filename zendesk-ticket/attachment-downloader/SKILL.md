@@ -1,6 +1,8 @@
 ---
 name: zendesk-attachment-downloader
 description: List and download Zendesk ticket attachments (agent flares, logs, screenshots) via Chrome JS execution using osascript. Use when the user asks to download attachments, download flare, get flare from ticket, list ticket files, or fetch ticket attachments.
+kanban: true
+kanban_columns: investigation,reproduction
 ---
 
 # Zendesk Attachment Downloader

@@ -1,6 +1,7 @@
 ---
 name: glean-chat-import
 description: Import Glean Chat conversations to local markdown files for Cursor context. Uses Chrome JS DOM scraping from an open app.glean.com/chat tab. Use when the user mentions import glean chat, glean history, transfer glean conversations, or bring glean chats to cursor.
+kanban: false
 ---
 
 # Glean Chat Importer

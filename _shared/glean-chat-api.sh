@@ -15,52 +15,63 @@ shift || true
 
 find_tab() {
     osascript -e 'tell application "Google Chrome"
+        set winIndex to -1
         set tabIndex to -1
+        set wIdx to 0
         repeat with w in windows
+            set wIdx to wIdx + 1
             set tabCount to count of tabs of w
             repeat with i from 1 to tabCount
                 if URL of tab i of w contains "glean.com/chat" then
+                    set winIndex to wIdx
                     set tabIndex to i
                     exit repeat
                 end if
             end repeat
             if tabIndex > -1 then exit repeat
         end repeat
-        return tabIndex
+        return (winIndex as text) & ":" & (tabIndex as text)
     end tell' 2>/dev/null
 }
 
 chrome_js() {
-    local tab_index="$1"
-    local js_code="$2"
+    local win_index="$1"
+    local tab_index="$2"
+    local js_code="$3"
     osascript -e "tell application \"Google Chrome\"
-        tell tab ${tab_index} of window 1
+        tell tab ${tab_index} of window ${win_index}
             return (execute javascript \"${js_code}\")
         end tell
     end tell" 2>/dev/null
 }
 
 chrome_js_file() {
-    local tab_index="$1"
-    local js_file="$2"
+    local win_index="$1"
+    local tab_index="$2"
+    local js_file="$3"
     local js_code
     js_code=$(cat "$js_file" | tr '\n' ' ' | sed 's/\\/\\\\/g' | sed 's/"/\\"/g')
     osascript -e "tell application \"Google Chrome\"
-        tell tab ${tab_index} of window 1
+        tell tab ${tab_index} of window ${win_index}
             return (execute javascript \"${js_code}\")
         end tell
     end tell" 2>/dev/null
 }
 
 require_tab() {
-    local tab
-    tab=$(find_tab)
-    if [ "$tab" -le 0 ] 2>/dev/null; then
+    local result
+    result=$(find_tab)
+    local win_index="${result%%:*}"
+    local tab_index="${result##*:}"
+    if [ "$win_index" -le 0 ] 2>/dev/null || [ "$tab_index" -le 0 ] 2>/dev/null; then
         echo "ERROR: No Glean Chat tab found in Chrome. Open app.glean.com/chat first." >&2
         exit 1
     fi
-    echo "$tab"
+    echo "$win_index:$tab_index"
 }
+
+parse_win() { echo "${1%%:*}"; }
+parse_tab() { echo "${1##*:}"; }
 
 sanitize_filename() {
     echo "$1" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/-/g' | sed 's/--*/-/g' | sed 's/^-//' | sed 's/-$//' | cut -c1-60
@@ -73,25 +84,28 @@ case "$COMMAND" in
 
     list)
         TAB=$(require_tab)
-        chrome_js "$TAB" "var container = document.querySelector('._1xr2hzv1j') || document.querySelector('._1ibi0s3di'); if (!container) { 'ERROR: No chat history container found'; } else { var links = container.querySelectorAll('a[href*=\\\"/chat/\\\"]'); var result = 'TOTAL:' + links.length + '\\\\n'; var seen = {}; for (var i = 0; i < links.length; i++) { var href = links[i].href.split('?')[0]; var id = href.split('/chat/')[1]; if (id && !seen[id] && id.indexOf('/') === -1 && id !== 'agents') { seen[id] = true; var title = links[i].textContent.trim().substring(0, 100); result += id + ' | ' + title + '\\\\n'; } } result; }"
+        chrome_js "$(parse_win "$TAB")" "$(parse_tab "$TAB")" "var container = document.querySelector('._1xr2hzv1j') || document.querySelector('._1ibi0s3di'); if (!container) { 'ERROR: No chat history container found'; } else { var links = container.querySelectorAll('a[href*=\\\"/chat/\\\"]'); var result = 'TOTAL:' + links.length + '\\\\n'; var seen = {}; for (var i = 0; i < links.length; i++) { var href = links[i].href.split('?')[0]; var id = href.split('/chat/')[1]; if (id && !seen[id] && id.indexOf('/') === -1 && id !== 'agents') { seen[id] = true; var title = links[i].textContent.trim().substring(0, 100); result += id + ' | ' + title + '\\\\n'; } } result; }"
         ;;
 
     fetch)
         CHAT_ID="${1:-}"
         TAB=$(require_tab)
 
+        W=$(parse_win "$TAB")
+        T=$(parse_tab "$TAB")
+
         if [ -n "$CHAT_ID" ]; then
-            CURRENT_URL=$(chrome_js "$TAB" "window.location.href;")
+            CURRENT_URL=$(chrome_js "$W" "$T" "window.location.href;")
             CURRENT_ID=$(echo "$CURRENT_URL" | sed 's|.*/chat/||' | sed 's|?.*||')
 
             if [ "$CURRENT_ID" != "$CHAT_ID" ]; then
                 QE=$(echo "$CURRENT_URL" | grep -o 'qe=[^&]*' || echo "")
-                chrome_js "$TAB" "window.location.href = '/chat/${CHAT_ID}${QE:+?$QE}'; 'OK';" > /dev/null
+                chrome_js "$W" "$T" "window.location.href = '/chat/${CHAT_ID}${QE:+?$QE}'; 'OK';" > /dev/null
                 sleep 3
 
                 RETRIES=0
                 while [ $RETRIES -lt 5 ]; do
-                    HAS_CONTENT=$(chrome_js "$TAB" "document.querySelector('.wgjulhk') ? 'YES' : 'NO';")
+                    HAS_CONTENT=$(chrome_js "$W" "$T" "document.querySelector('.wgjulhk') ? 'YES' : 'NO';")
                     if [ "$HAS_CONTENT" = "YES" ]; then
                         break
                     fi
@@ -138,7 +152,7 @@ for (var t = 0; t < turns.length; t++) {
 if (turns.length === 0) md += '*No messages found in this chat.*\n';
 md;
 JSEOF
-        chrome_js_file "$TAB" "$TMPJS"
+        chrome_js_file "$W" "$T" "$TMPJS"
         rm -f "$TMPJS"
         ;;
 

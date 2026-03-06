@@ -1,6 +1,8 @@
 ---
 name: zendesk-ticket-eta
 description: Estimate time of resolution for a Zendesk ticket. Provides active work time, calendar time, and time to next response — with blockers flagged separately and confidence level. Uses difficulty score + lifecycle phase + similar resolved tickets for calibration. Use when the user mentions ETA, how long, time to resolve, resolution time, or after ticket-pool for queue planning.
+kanban: true
+kanban_columns: triage
 ---
 
 # Estimate Time of Resolution
