@@ -15,6 +15,9 @@
 
 set -euo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "${SCRIPT_DIR}/chrome-helper.sh"
+
 COMMAND="${1:-help}"
 shift || true
 
@@ -49,35 +52,11 @@ tagStr.slice(0, -2);
 "
 
 find_tab() {
-    osascript -e 'tell application "Google Chrome"
-        set winIndex to -1
-        set tabIndex to -1
-        set wIdx to 0
-        repeat with w in windows
-            set wIdx to wIdx + 1
-            set tabCount to count of tabs of w
-            repeat with i from 1 to tabCount
-                if URL of tab i of w contains "zendesk.com" then
-                    set winIndex to wIdx
-                    set tabIndex to i
-                    exit repeat
-                end if
-            end repeat
-            if tabIndex > -1 then exit repeat
-        end repeat
-        return (winIndex as text) & ":" & (tabIndex as text)
-    end tell' 2>/dev/null
+    chrome_find_tab "zendesk.com"
 }
 
 chrome_js() {
-    local win_index="$1"
-    local tab_index="$2"
-    local js_code="$3"
-    osascript -e "tell application \"Google Chrome\"
-        tell tab ${tab_index} of window ${win_index}
-            return (execute javascript \"${js_code}\")
-        end tell
-    end tell" 2>/dev/null
+    chrome_exec_js "$1" "$2" "$3"
 }
 
 require_tab() {
