@@ -258,7 +258,7 @@ At the very end of the file (after the last timeline entry), ALWAYS include thes
 <plain text response the TSE can copy-paste to the customer>
 ```
 
-The response draft must contain plain text only — NO markdown headers, bold, italic, code blocks, or bullet points inside the draft content. Start with a greeting using the customer's first name. Direct, professional tone — no hedging. Include specific commands and doc links as needed. End with: "Best regards,\nAlexandre VEA\nTechnical Support Engineer 2 | Datadog"
+The response draft must contain plain text only — NO markdown headers, bold, italic, code blocks, or bullet points inside the draft content. Start with a greeting using the customer's first name. Direct, professional tone — no hedging. Include specific commands and doc links as needed. End with: "Best regards,\n{AGENT_NAME}\n{AGENT_TITLE} | Datadog" (use the assignee name/title from the ticket)
 
 **2. Investigation Decision** (ALWAYS required):
 

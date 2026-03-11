@@ -99,7 +99,7 @@ Write the following section and append it to `investigations/ZD-{{TICKET_ID}}.md
 
 **Format (Zendesk customer response standard):**
 - Plain text only — no markdown (no **, ##, bullets)
-- Signature: `Best regards,\nAlexandre VEA\nTechnical Support Engineer 2 | Datadog` (or assignee name/title if different)
+- Signature: `Best regards,\n{AGENT_NAME}\n{AGENT_TITLE} | Datadog` (use the assignee name/title from the ticket)
 ```
 
 ## Step 5: Append to the investigation file
