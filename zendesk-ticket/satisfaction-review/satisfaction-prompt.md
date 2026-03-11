@@ -96,6 +96,10 @@ Write the following section and append it to `investigations/ZD-{{TICKET_ID}}.md
 
 #### Suggested Message
 {Write a complete, ready-to-paste customer-facing message. Use the ticket context to make it specific — not a generic template. Address the customer by name if available. Reference the specific topic discussed.}
+
+**Format (Zendesk customer response standard):**
+- Plain text only — no markdown (no **, ##, bullets)
+- Signature: `Best regards,\nAlexandre VEA\nTechnical Support Engineer 2 | Datadog` (or assignee name/title if different)
 ```
 
 ## Step 5: Append to the investigation file
