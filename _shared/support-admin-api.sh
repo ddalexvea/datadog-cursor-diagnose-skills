@@ -52,9 +52,17 @@ chrome_js_file() {
 
     _chrome_ensure_target || { echo "ERROR: Cannot reach Chrome"; return 1; }
 
-    # Read JS, collapse to one line, JSON-encode it so it's a safe AppleScript string
+    # Read JS, strip // comments (they break single-line collapse), collapse to one line,
+    # then JSON-encode it so it's a safe AppleScript string
     local js_escaped
-    js_escaped=$(python3 -c "import sys, json; code = open(sys.argv[1]).read().replace(chr(10), ' '); print(json.dumps(code))" "$js_file")
+    js_escaped=$(python3 -c "
+import sys, json, re
+code = open(sys.argv[1]).read()
+code = re.sub(r'(?m)^\s*//.*$', '', code)          # full-line // comments
+code = re.sub(r'\s//[^\n]*', '', code)             # trailing // comments
+code = code.replace(chr(10), ' ')
+print(json.dumps(code))
+" "$js_file")
 
     # Build AppleScript file using printf (heredoc would break on the quotes in js_escaped)
     local as_file
@@ -249,8 +257,7 @@ JSEOF
 (function(){
   try {
     var traceId = __TRACE_ID_JSON__;
-    // Search spans belonging to this trace - 15-min window by default;
-    // if no results, widen to 1h, then 24h
+    /* Search spans belonging to this trace - 15-min window by default; if no results, widen to 1h, then 24h */
     var windows = [900000, 3600000, 86400000];
     var spans = [];
     for (var w = 0; w < windows.length; w++) {
@@ -413,7 +420,7 @@ JSEOF
       result += '</TSV_DATA>';
       return result;
     }
-    // Logs search blocked on support-admin - return diagnostic info
+    /* Logs search blocked on support-admin - return diagnostic info */
     var xhr2 = new XMLHttpRequest();
     xhr2.open('GET', '/api/v1/logs/indexes', false);
     xhr2.send();
