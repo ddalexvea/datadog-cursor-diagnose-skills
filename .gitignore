@@ -3,3 +3,5 @@ _shared/support-admin-query.sh
 count-host-in-org/
 count-host-running-agent/
 test/
+_shared/support-admin-api.sh
+support-admin/
