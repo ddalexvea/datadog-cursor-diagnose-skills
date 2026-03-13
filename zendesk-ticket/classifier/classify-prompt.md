@@ -30,30 +30,11 @@ chrome_exec_js "$WIN" "$TAB_IDX" "var xhr=new XMLHttpRequest();xhr.open('GET','/
 From the tags output, find the tag matching `incident_XXXXX` and extract the number (e.g. `incident_50999` → `50999`).
 
 ### Incident Comms — Step B: Find the Golden Ticket
-Write this JS to `/tmp/zd_find_golden.js` and run it:
+
+Run this command (replace `INCIDENT_NUMBER_HERE` with the actual number, e.g. `50999`):
 
 ```bash
-cat > /tmp/zd_find_golden.js << 'JSEOF'
-var incidentTag = "incident_INCIDENT_NUMBER_HERE";
-var xhr = new XMLHttpRequest();
-xhr.open('GET', '/api/v2/search.json?query=tags:' + incidentTag + '&per_page=100', false);
-xhr.send();
-var data = JSON.parse(xhr.responseText);
-var out = 'TOTAL:' + data.count + '\n';
-for (var i = 0; i < data.results.length; i++) {
-  var t = data.results[i];
-  var isGolden = t.subject.toLowerCase().indexOf('golden') > -1 ||
-                 t.subject.toLowerCase().indexOf('gold') > -1 ||
-                 t.subject.toLowerCase().indexOf('internal') > -1;
-  out += t.id + ' | ' + t.status + ' | golden:' + isGolden + ' | ' + t.subject + '\n';
-}
-out;
-JSEOF
-```
-
-Replace `INCIDENT_NUMBER_HERE` with the actual incident number, then run:
-```bash
-source ~/.cursor/skills/_shared/chrome-helper.sh && chrome_exec_js "$WIN" "$TAB_IDX" "$(cat /tmp/zd_find_golden.js | tr '\n' ' ')"
+source ~/.cursor/skills/_shared/chrome-helper.sh && TAB=$(chrome_find_tab "zendesk.com") && WIN=$(echo "$TAB" | cut -d: -f1) && TAB_IDX=$(echo "$TAB" | cut -d: -f2) && chrome_exec_js "$WIN" "$TAB_IDX" "var tag='incident_INCIDENT_NUMBER_HERE';var xhr=new XMLHttpRequest();xhr.open('GET','/api/v2/search.json?query=tags:'+tag+'&per_page=100',false);xhr.send();var d=JSON.parse(xhr.responseText);var out='TOTAL:'+d.count+'\n';for(var i=0;i<d.results.length;i++){var t=d.results[i];var g=t.subject.toLowerCase().indexOf('golden')>-1||t.subject.toLowerCase().indexOf('gold')>-1||t.subject.toLowerCase().indexOf('internal')>-1;out+=t.id+' | '+t.status+' | golden:'+g+' | '+t.subject+'\n';}out;"
 ```
 
 From the results, identify the Golden Ticket (subject contains "GOLDEN TICKET", "GOLD TICKET", or "INTERNAL"). If no golden ticket found, use the most recent ticket tagged with the incident.
