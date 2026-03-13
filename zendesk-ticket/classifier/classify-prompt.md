@@ -20,10 +20,83 @@ TAB_IDX=$(echo "$TAB" | cut -d: -f2)
 chrome_exec_js "$WIN" "$TAB_IDX" "var xhr=new XMLHttpRequest();xhr.open('GET','/api/v2/tickets/{{TICKET_ID}}.json',false);xhr.send();JSON.parse(xhr.responseText).ticket.tags.join(', ');"
 ```
 
-**If the output contains the word `incident` AND a tag matching `incident_` followed by digits (e.g. `incident_50999`):**
-→ **STOP all classification. Run the `incident-comms` skill immediately.** Do NOT run Steps 1–4. This ticket is part of a tracked platform incident and needs Golden Ticket comms, not a standard classification.
-
 **If no `incident_XXXXX` tag is present:** proceed to Step 1 normally.
+
+**If the output contains `incident` AND a tag matching `incident_` followed by digits (e.g. `incident_50999`):**
+
+→ **STOP all classification. Do NOT run Steps 1–4. Execute the following steps in full:**
+
+### Incident Comms — Step A: Extract the incident number
+From the tags output, find the tag matching `incident_XXXXX` and extract the number (e.g. `incident_50999` → `50999`).
+
+### Incident Comms — Step B: Find the Golden Ticket
+Write this JS to `/tmp/zd_find_golden.js` and run it:
+
+```bash
+cat > /tmp/zd_find_golden.js << 'JSEOF'
+var incidentTag = "incident_INCIDENT_NUMBER_HERE";
+var xhr = new XMLHttpRequest();
+xhr.open('GET', '/api/v2/search.json?query=tags:' + incidentTag + '&per_page=100', false);
+xhr.send();
+var data = JSON.parse(xhr.responseText);
+var out = 'TOTAL:' + data.count + '\n';
+for (var i = 0; i < data.results.length; i++) {
+  var t = data.results[i];
+  var isGolden = t.subject.toLowerCase().indexOf('golden') > -1 ||
+                 t.subject.toLowerCase().indexOf('gold') > -1 ||
+                 t.subject.toLowerCase().indexOf('internal') > -1;
+  out += t.id + ' | ' + t.status + ' | golden:' + isGolden + ' | ' + t.subject + '\n';
+}
+out;
+JSEOF
+```
+
+Replace `INCIDENT_NUMBER_HERE` with the actual incident number, then run:
+```bash
+source ~/.cursor/skills/_shared/chrome-helper.sh && chrome_exec_js "$WIN" "$TAB_IDX" "$(cat /tmp/zd_find_golden.js | tr '\n' ' ')"
+```
+
+From the results, identify the Golden Ticket (subject contains "GOLDEN TICKET", "GOLD TICKET", or "INTERNAL"). If no golden ticket found, use the most recent ticket tagged with the incident.
+
+### Incident Comms — Step C: Extract all communications from the Golden Ticket
+```bash
+~/.cursor/skills/_shared/zd-api.sh comments GOLDEN_TICKET_ID 0
+```
+(Replace `GOLDEN_TICKET_ID` with the ID found in Step B.)
+
+### Incident Comms — Step D: Output
+Print in chat, newest first:
+```
+🚨 INCIDENT #INCIDENT_NUMBER — Golden Ticket #GOLDEN_TICKET_ID
+Subject: {golden ticket subject}
+Status: {golden ticket status}
+Total tickets in this incident: {TOTAL}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📢 CUSTOMER COMMUNICATIONS ({count} total)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+[N] {timestamp UTC} — {INITIAL UPDATE / UPDATE / RESOLUTION}
+──────────────────────────────────────
+{full comment body}
+
+...
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+💡 LATEST COMMUNICATION TO REUSE:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+{most recent public comment body — ready to copy-paste}
+```
+
+Keep only **public outbound** comments (skip internal notes marked `public: false`, bot messages, SLA triggers).
+Label: first → **INITIAL UPDATE**, middle → **UPDATE**, last mentioning "resolved"/"confirmed"/"working" → **RESOLUTION**.
+If golden ticket status is `open`: add banner `⚠️ INCIDENT STILL ONGOING`.
+
+Then set:
+- `Next: ready_to_review`
+- `Reason: Incident comms extracted from Golden Ticket #GOLDEN_TICKET_ID for incident_INCIDENT_NUMBER`
+
+**Do NOT write a standard classification. Do NOT proceed to Step 1.**
 
 ## Step 1: Read the ticket
 
