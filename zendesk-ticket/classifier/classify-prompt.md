@@ -16,74 +16,21 @@ Look at the output of the `zd-api.sh ticket` command you just ran in Step 0.
 
 **If the output contains `incident:true` AND `incident_id:XXXXX` (e.g. `incident_id:50999`):**
 
-→ **STOP all classification. Do NOT run Steps 1–4. You MUST execute Steps A–D below and produce the exact output format shown. Do not summarize. Do not skip. Do not write a standard triage.**
+→ **STOP all classification. Do NOT run Steps 1–4.**
 
-### Incident Comms — Step A: Note the incident number
-From the Step 0 output, read the `incident_id` value (e.g. `incident_id:50999` → incident number is `50999`). You need this for Steps B and C.
+This is an incident ticket. Follow the `incident-comms-prompt.md` workflow:
 
-### Incident Comms — Step B: Find the Golden Ticket (RUN THIS COMMAND NOW)
+1. Run: `~/.cursor/skills/_shared/zd-api.sh search "tags:incident_XXXXX subject:golden"` (replace XXXXX with the incident number)
+2. From the results, find the Golden Ticket (subject contains "GOLDEN", "GOLD", or "INTERNAL")
+3. Run: `~/.cursor/skills/_shared/zd-api.sh comments GOLDEN_TICKET_ID 0` (the Golden Ticket is a DIFFERENT ticket — use its ID, not the customer ticket ID)
+4. Extract public outbound communications and print them formatted for the TSE
+5. Write `## Triage Decision` with `Next: ready_to_review`
 
-Replace `INCIDENT_NUMBER_HERE` with the actual incident number from Step A, then run:
-
-```bash
-~/.cursor/skills/_shared/zd-api.sh search "tags:incident_INCIDENT_NUMBER_HERE"
-```
-
-You MUST run this command. Do not skip it. Do not assume you already know the Golden Ticket ID.
-
-From the output, identify the Golden Ticket: subject contains "GOLDEN TICKET", "GOLD TICKET", or "INTERNAL". If none match, use the ticket with the most recent `updated_at`.
-
-### Incident Comms — Step C: Extract all communications (RUN THIS COMMAND NOW)
-
-Replace `GOLDEN_TICKET_ID` with the ID found in Step B, then run:
-
-```bash
-~/.cursor/skills/_shared/zd-api.sh comments GOLDEN_TICKET_ID 0
-```
-
-You MUST run this command. Do not skip it. The Golden Ticket is a **different ticket** from #{{TICKET_ID}} — you need its comments, not the ones you already read.
-
-### Incident Comms — Step D: Output
-Print in chat, newest first:
-```
-🚨 INCIDENT #INCIDENT_NUMBER — Golden Ticket #GOLDEN_TICKET_ID
-Subject: {golden ticket subject}
-Status: {golden ticket status}
-Total tickets in this incident: {TOTAL}
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-📢 CUSTOMER COMMUNICATIONS ({count} total)
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-[N] {timestamp UTC} — {INITIAL UPDATE / UPDATE / RESOLUTION}
-──────────────────────────────────────
-{full comment body}
-
-...
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-💡 LATEST COMMUNICATION TO REUSE:
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-{most recent public comment body — ready to copy-paste}
-```
-
-Keep only **public outbound** comments (skip internal notes marked `public: false`, bot messages, SLA triggers).
-Label: first → **INITIAL UPDATE**, middle → **UPDATE**, last mentioning "resolved"/"confirmed"/"working" → **RESOLUTION**.
-If golden ticket status is `open`: add banner `⚠️ INCIDENT STILL ONGOING`.
-
-Then write to `investigations/ZD-{{TICKET_ID}}.md` (create if missing):
-
-```markdown
-## Triage Decision
-- Next: ready_to_review
-- Reason: Incident comms extracted from Golden Ticket #GOLDEN_TICKET_ID for incident_INCIDENT_NUMBER
-```
-
-**Do NOT write a standard classification. Do NOT proceed to Step 1.**
+**You MUST execute these commands. Do NOT hallucinate or assume the output. Do NOT skip any step.**
 
 ## Step 1: Read the ticket
 
-### Primary: Chrome JS (real-time)
+### Primary: zd-api.sh (API)
 
 ```bash
 ~/.cursor/skills/_shared/zd-api.sh read {{TICKET_ID}}
@@ -196,20 +143,8 @@ Based on the initial classification, run the appropriate confirmation checks:
   → Multiple tickets = platform incident. Single ticket = likely technical-bug
 
 - **Check for incident tag and fetch Golden Ticket comms:**
-  Get the raw tags for the ticket:
-  ```bash
-  source ~/.cursor/skills/_shared/chrome-helper.sh
-  # find tab first if needed: chrome_find_tab "zendesk.com"
-  ```
-  Then run:
-  ```bash
-  source ~/.cursor/skills/_shared/chrome-helper.sh && chrome_exec_js WIN TAB \
-    "var xhr=new XMLHttpRequest();xhr.open('GET','/api/v2/tickets/{{TICKET_ID}}.json',false);xhr.send();JSON.parse(xhr.responseText).ticket.tags.join(', ');"
-  ```
-  If tags contain `incident` AND `incident_XXXXX`:
-  → **Immediately run the `incident-comms` skill** for this ticket.
-  This will find the Golden Ticket and extract all approved customer communications so the TSE can copy-paste the latest update directly.
-
+  The `zd-api.sh ticket` output from Step 0 already shows `incident:true` and `incident_id:XXXXX` if this is an incident.
+  If those fields are present, Step 0b should have already handled it. If you reach this point for an incident ticket, follow the `incident-comms-prompt.md` workflow now.
 ## Step 4: Output classification
 
 Write the result in this format:
