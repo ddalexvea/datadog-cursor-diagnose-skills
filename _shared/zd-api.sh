@@ -12,6 +12,7 @@
 #   attachments <ID>           List attachments (filename | size | type | url)
 #   download <URL> <NAME>      Trigger Chrome download of an attachment
 #   read <ID> [chars]          Combined: ticket metadata + comments in one call
+#   presence                   Get current agent status (online/offline/away) from Zendesk UI
 
 set -euo pipefail
 
@@ -147,6 +148,11 @@ case "$COMMAND" in
         chrome_js "$(parse_win "$TAB")" "$(parse_tab "$TAB")" "fetch('${URL}').then(function(r){return r.blob()}).then(function(b){var u=URL.createObjectURL(b);var a=document.createElement('a');a.href=u;a.download='${FILENAME}';a.click();URL.revokeObjectURL(u);});'Download triggered: ${FILENAME}'"
         ;;
 
+    presence)
+        TAB=$(require_tab)
+        chrome_js "$(parse_win "$TAB")" "$(parse_tab "$TAB")" "var figs=document.querySelectorAll('figcaption');var statusEl=null;for(var i=0;i<figs.length;i++){if(figs[i].getAttribute('data-garden-id')==='avatars.status_indicator'){statusEl=figs[i];break;}}var statusText=statusEl?statusEl.getAttribute('aria-label')||'unknown':'unknown';if(statusText==='unknown'){var allEls=document.querySelectorAll('[data-test-id]');for(var j=0;j<allEls.length;j++){var tid=allEls[j].getAttribute('data-test-id');if(tid==='profile-menu-email-channel-status'){var parts=allEls[j].textContent.trim().split(' ');statusText=parts.length>1?parts.slice(1).join(' '):parts[0];break;}}}statusText=statusText.charAt(0).toUpperCase()+statusText.slice(1);var xhr=new XMLHttpRequest();xhr.open('GET','/api/v2/users/me.json',false);xhr.send();var u=JSON.parse(xhr.responseText).user;'ID:'+u.id+' | NAME:'+u.name+' | EMAIL:'+u.email+' | STATUS:'+statusText+' | LAST_LOGIN:'+(u.last_login_at||'');"
+        ;;
+
     help|*)
         echo "Zendesk API via Chrome JS — token-optimized"
         echo ""
@@ -162,6 +168,7 @@ case "$COMMAND" in
         echo "  search <QUERY>             Search with extracted metadata"
         echo "  attachments <ID>           List attachments"
         echo "  download <URL> <NAME>      Download attachment"
+        echo "  presence                   Get current agent status from Zendesk UI"
         echo ""
         echo "Tag filtering: only product, account, tier, mrr, complexity,"
         echo "impact, spec, org, replies, critical, hipaa, top75, region"
