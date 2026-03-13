@@ -73,9 +73,13 @@ Keep only **public outbound** comments (skip internal notes marked `public: fals
 Label: first → **INITIAL UPDATE**, middle → **UPDATE**, last mentioning "resolved"/"confirmed"/"working" → **RESOLUTION**.
 If golden ticket status is `open`: add banner `⚠️ INCIDENT STILL ONGOING`.
 
-Then set:
-- `Next: ready_to_review`
-- `Reason: Incident comms extracted from Golden Ticket #GOLDEN_TICKET_ID for incident_INCIDENT_NUMBER`
+Then write to `investigations/ZD-{{TICKET_ID}}.md` (create if missing):
+
+```markdown
+## Triage Decision
+- Next: ready_to_review
+- Reason: Incident comms extracted from Golden Ticket #GOLDEN_TICKET_ID for incident_INCIDENT_NUMBER
+```
 
 **Do NOT write a standard classification. Do NOT proceed to Step 1.**
 
