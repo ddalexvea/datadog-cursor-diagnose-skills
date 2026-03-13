@@ -122,6 +122,21 @@ Based on the initial classification, run the appropriate confirmation checks:
   - sort_by_recency: true
   → Multiple tickets = platform incident. Single ticket = likely technical-bug
 
+- **Check for incident tag and fetch Golden Ticket comms:**
+  Get the raw tags for the ticket:
+  ```bash
+  source ~/.cursor/skills/_shared/chrome-helper.sh
+  # find tab first if needed: chrome_find_tab "zendesk.com"
+  ```
+  Then run:
+  ```bash
+  source ~/.cursor/skills/_shared/chrome-helper.sh && chrome_exec_js WIN TAB \
+    "var xhr=new XMLHttpRequest();xhr.open('GET','/api/v2/tickets/{{TICKET_ID}}.json',false);xhr.send();JSON.parse(xhr.responseText).ticket.tags.join(', ');"
+  ```
+  If tags contain `incident` AND `incident_XXXXX`:
+  → **Immediately run the `incident-comms` skill** for this ticket.
+  This will find the Golden Ticket and extract all approved customer communications so the TSE can copy-paste the latest update directly.
+
 ## Step 4: Output classification
 
 Write the result in this format:
