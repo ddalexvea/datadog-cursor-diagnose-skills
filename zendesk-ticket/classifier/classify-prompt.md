@@ -8,26 +8,18 @@ Classify Zendesk ticket #{{TICKET_ID}}.
 
 If the output contains `ai_optout:true`, **STOP NOW**. Tell the user: "Ticket #{{TICKET_ID}}: AI processing is blocked — this customer has opted out of GenAI (oai_opted_out). Handle manually without AI." Do NOT proceed to any further steps.
 
-## Step 0b: Incident Tag Check (MANDATORY — run BEFORE any classification)
+## Step 0b: Incident Tag Check (MANDATORY — check output from Step 0)
 
-Get the raw ticket tags unconditionally — do NOT skip this step:
+Look at the output of the `zd-api.sh ticket` command you just ran in Step 0.
 
-```bash
-source ~/.cursor/skills/_shared/chrome-helper.sh
-TAB=$(chrome_find_tab "zendesk.com")
-WIN=$(echo "$TAB" | cut -d: -f1)
-TAB_IDX=$(echo "$TAB" | cut -d: -f2)
-chrome_exec_js "$WIN" "$TAB_IDX" "var xhr=new XMLHttpRequest();xhr.open('GET','/api/v2/tickets/{{TICKET_ID}}.json',false);xhr.send();JSON.parse(xhr.responseText).ticket.tags.join(', ');"
-```
+**If no `incident_id:XXXXX` field is present:** proceed to Step 1 normally.
 
-**If no `incident_XXXXX` tag is present:** proceed to Step 1 normally.
-
-**If the output contains `incident` AND a tag matching `incident_` followed by digits (e.g. `incident_50999`):**
+**If the output contains `incident:true` AND `incident_id:XXXXX` (e.g. `incident_id:50999`):**
 
 → **STOP all classification. Do NOT run Steps 1–4. Execute the following steps in full:**
 
 ### Incident Comms — Step A: Extract the incident number
-From the tags output, find the tag matching `incident_XXXXX` and extract the number (e.g. `incident_50999` → `50999`).
+From the Step 0 output, read the `incident_id` value (e.g. `incident_id:50999` → incident number is `50999`).
 
 ### Incident Comms — Step B: Find the Golden Ticket
 

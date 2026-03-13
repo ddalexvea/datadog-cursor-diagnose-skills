@@ -45,6 +45,8 @@ t.tags.forEach(function(tag) {
   else if (tag === 'oai_opted_out') useful.ai_optout = 'true';
   else if (tag === 'messaging_session_live') useful.chat = 'live';
   else if (tag === 'messaging_session_ended' || tag === 'messaging_session_moved_offline') useful.chat = 'ended';
+  else if (tag === 'incident') useful.incident = 'true';
+  else if (tag.match(/^incident_\\\\d+$/)) useful.incident_id = tag.replace('incident_','');
 });
 var tagStr = '';
 Object.keys(useful).forEach(function(k) { tagStr += k + ':' + useful[k] + ', '; });
