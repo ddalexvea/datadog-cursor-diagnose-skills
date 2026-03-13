@@ -8,6 +8,23 @@ Classify Zendesk ticket #{{TICKET_ID}}.
 
 If the output contains `ai_optout:true`, **STOP NOW**. Tell the user: "Ticket #{{TICKET_ID}}: AI processing is blocked — this customer has opted out of GenAI (oai_opted_out). Handle manually without AI." Do NOT proceed to any further steps.
 
+## Step 0b: Incident Tag Check (MANDATORY — run BEFORE any classification)
+
+Get the raw ticket tags unconditionally — do NOT skip this step:
+
+```bash
+source ~/.cursor/skills/_shared/chrome-helper.sh
+TAB=$(chrome_find_tab "zendesk.com")
+WIN=$(echo "$TAB" | cut -d: -f1)
+TAB_IDX=$(echo "$TAB" | cut -d: -f2)
+chrome_exec_js "$WIN" "$TAB_IDX" "var xhr=new XMLHttpRequest();xhr.open('GET','/api/v2/tickets/{{TICKET_ID}}.json',false);xhr.send();JSON.parse(xhr.responseText).ticket.tags.join(', ');"
+```
+
+**If the output contains the word `incident` AND a tag matching `incident_` followed by digits (e.g. `incident_50999`):**
+→ **STOP all classification. Run the `incident-comms` skill immediately.** Do NOT run Steps 1–4. This ticket is part of a tracked platform incident and needs Golden Ticket comms, not a standard classification.
+
+**If no `incident_XXXXX` tag is present:** proceed to Step 1 normally.
+
 ## Step 1: Read the ticket
 
 ### Primary: Chrome JS (real-time)
