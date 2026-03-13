@@ -8,8 +8,9 @@ The TSE has provided a Zendesk ticket ID (e.g. `#2531965`). This ticket is linke
 
 ---
 
-## Step 1 — AI Compliance Check (MANDATORY FIRST)
+## Step 1 — Get Ticket Metadata (MANDATORY FIRST)
 
+RUN THIS COMMAND NOW:
 ```bash
 ~/.cursor/skills/_shared/zd-api.sh ticket {TICKET_ID}
 ```
@@ -20,70 +21,58 @@ If output contains `ai_optout:true` → **STOP**. Output: `[AI BLOCKED — custo
 
 ## Step 2 — Detect the Incident Tag
 
-Read the ticket tags (already retrieved in Step 1). Look for:
-- `incident` → confirms this is an incident ticket
-- `incident_XXXXX` → extract the incident number (e.g. `incident_50999` → `50999`)
+Read the ticket output from Step 1. Look for:
+- `incident:true` → confirms this is an incident ticket
+- `incident_id:XXXXX` → extract the incident number (e.g. `incident_id:50999` → `50999`)
 
-If neither tag is found → output:
+If neither is found → output:
 ```
-❌ Ticket #{TICKET_ID} does not appear to be linked to a Datadog incident (no incident_XXXXX tag found).
+❌ Ticket #{TICKET_ID} does not appear to be linked to a Datadog incident (no incident tag found).
 ```
-And stop.
+And **STOP**.
 
 ---
 
 ## Step 3 — Find the Golden Ticket
 
-Write this JS to `/tmp/zd_find_golden.js` and run it:
-
+RUN THIS COMMAND NOW:
 ```bash
-cat > /tmp/zd_find_golden.js << 'JSEOF'
-var incidentTag = "incident_{INCIDENT_NUMBER}";
-var xhr = new XMLHttpRequest();
-xhr.open('GET', '/api/v2/search.json?query=tags:' + incidentTag + '&per_page=100', false);
-xhr.send();
-var data = JSON.parse(xhr.responseText);
-var out = 'TOTAL:' + data.count + '\n';
-for (var i = 0; i < data.results.length; i++) {
-  var t = data.results[i];
-  var isGolden = t.subject.toLowerCase().indexOf('golden') > -1 ||
-                 t.subject.toLowerCase().indexOf('gold') > -1 ||
-                 t.subject.toLowerCase().indexOf('internal') > -1;
-  out += t.id + ' | ' + t.status + ' | golden:' + isGolden + ' | ' + t.subject + '\n';
-}
-out;
-JSEOF
-source ~/.cursor/skills/_shared/chrome-helper.sh && chrome_exec_js_file 1 2 /tmp/zd_find_golden.js
+~/.cursor/skills/_shared/zd-api.sh search "tags:incident_{INCIDENT_NUMBER} subject:golden"
 ```
 
-From the results, identify the Golden Ticket:
-- Look for a ticket with "GOLDEN TICKET", "GOLD TICKET", or "INTERNAL" in the subject
-- It is typically the single coordination ticket created by the incident response team
-- If multiple candidates exist, pick the one with "GOLDEN" in the subject
+The output will show tickets matching the search. Look for a ticket with "GOLDEN TICKET", "GOLD TICKET", or "INTERNAL" in the subject. It is typically the single coordination ticket created by the incident response team.
 
-If no golden ticket is found → output:
+If the search returns `TOTAL:0` or no ticket with "GOLDEN" in the subject, try a broader search:
+```bash
+~/.cursor/skills/_shared/zd-api.sh search "tags:incident_{INCIDENT_NUMBER}"
 ```
-⚠️ No Golden Ticket found for incident_{INCIDENT_NUMBER}. There are {TOTAL} tickets tagged with this incident.
-Here are all {TOTAL} tickets — check manually:
-{list}
+Then manually inspect the subjects for the Golden Ticket.
+
+If still no golden ticket found → output:
 ```
+⚠️ No Golden Ticket found for incident_{INCIDENT_NUMBER}. Check the search results manually.
+```
+And **STOP**.
+
+Extract the Golden Ticket ID from the first column of the matching row.
 
 ---
 
 ## Step 4 — Extract All Communications from the Golden Ticket
 
+RUN THIS COMMAND NOW:
 ```bash
 ~/.cursor/skills/_shared/zd-api.sh comments {GOLDEN_TICKET_ID} 0
 ```
 
-This returns all comments (full body, `0` = no truncation).
+The `0` means no truncation — returns full comment bodies. The Golden Ticket is a **different ticket** from the customer ticket. Do NOT use the customer ticket ID here.
 
 ---
 
 ## Step 5 — Filter to Public/Outbound Comments Only
 
 From the comments, keep only **public outbound** ones (the actual customer communications). Skip:
-- Internal notes (they are marked as `public: false` in the API, but we can infer them by content: they typically start with brackets like `[Internal]`, contain only routing/SLA info, or are from automated bots like SLA triggers)
+- Internal notes (marked as `public: false`, or content starts with `[Internal]`, contains only routing/SLA info, or is from automated bots)
 - Auto-generated bot messages (author IDs matching known bot IDs like `-1`)
 
 The real communications will be authored by a TSE (human author_id > 0) and contain actual incident update text like "We are currently investigating...", "We identified the cause...", "We can confirm...".
@@ -95,10 +84,9 @@ The real communications will be authored by a TSE (human author_id > 0) and cont
 Print the following in chat, newest communication first:
 
 ```
-🚨 INCIDENT #{INCIDENT_NUMBER} — Golden Ticket #{{GOLDEN_TICKET_ID}}
+🚨 INCIDENT #{INCIDENT_NUMBER} — Golden Ticket #{GOLDEN_TICKET_ID}
 Subject: {golden ticket subject}
 Status: {golden ticket status}
-Total tickets in this incident: {TOTAL}
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 📢 CUSTOMER COMMUNICATIONS ({count} total)
@@ -127,8 +115,21 @@ Label each communication:
 
 ---
 
+## Step 7 — Write Triage Decision to Investigation File
+
+After printing the output above, write the triage decision to the investigation file:
+
+```
+## Triage Decision
+- Next: ready_to_review
+- Reason: Incident communication extracted from Golden Ticket #{GOLDEN_TICKET_ID} for incident #{INCIDENT_NUMBER}
+```
+
+---
+
 ## Notes
 
+- **DO NOT** use `chrome_exec_js`, `osascript`, or any browser automation. Only use `zd-api.sh` commands.
 - Always show **all** communications, not just the latest (TSE picks which to use)
 - The "LATEST COMMUNICATION TO REUSE" block at the bottom makes it easy to grab the most recent one
 - If the incident is still ongoing (golden ticket status = `open`), add a banner: `⚠️ INCIDENT STILL ONGOING — no resolution communication yet`

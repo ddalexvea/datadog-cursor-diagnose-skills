@@ -46,9 +46,8 @@ The agent will follow `incident-comms-prompt.md`.
 
 ## Prerequisites
 
-- **macOS** with `osascript`
-- **Google Chrome** running with a Zendesk tab open
-- **"Allow JavaScript from Apple Events"** enabled in Chrome
+- `~/.cursor/skills/_shared/zd-api.sh` available and working
+- Zendesk tab open in Chrome (required by `zd-api.sh` internally)
 
 ## AI Compliance Check (MANDATORY)
 
