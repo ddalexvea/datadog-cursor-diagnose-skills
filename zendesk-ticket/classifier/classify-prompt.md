@@ -26,12 +26,12 @@ From the Step 0 output, read the `incident_id` value (e.g. `incident_id:50999` �
 Replace `INCIDENT_NUMBER_HERE` with the actual incident number from Step A, then run:
 
 ```bash
-source ~/.cursor/skills/_shared/chrome-helper.sh && TAB=$(chrome_find_tab "zendesk.com") && WIN=$(echo "$TAB" | cut -d: -f1) && TAB_IDX=$(echo "$TAB" | cut -d: -f2) && chrome_exec_js "$WIN" "$TAB_IDX" "var tag='incident_INCIDENT_NUMBER_HERE';var xhr=new XMLHttpRequest();xhr.open('GET','/api/v2/search.json?query=tags:'+tag+'&per_page=100',false);xhr.send();var d=JSON.parse(xhr.responseText);var out='TOTAL:'+d.count+'\n';for(var i=0;i<d.results.length;i++){var t=d.results[i];var g=t.subject.toLowerCase().indexOf('golden')>-1||t.subject.toLowerCase().indexOf('gold')>-1||t.subject.toLowerCase().indexOf('internal')>-1;out+=t.id+' | '+t.status+' | golden:'+g+' | '+t.subject+'\n';}out;"
+~/.cursor/skills/_shared/zd-api.sh search "tags:incident_INCIDENT_NUMBER_HERE"
 ```
 
 You MUST run this command. Do not skip it. Do not assume you already know the Golden Ticket ID.
 
-From the output, identify the Golden Ticket: subject contains "GOLDEN TICKET", "GOLD TICKET", or "INTERNAL". If none match, use the ticket with the most comments.
+From the output, identify the Golden Ticket: subject contains "GOLDEN TICKET", "GOLD TICKET", or "INTERNAL". If none match, use the ticket with the most recent `updated_at`.
 
 ### Incident Comms — Step C: Extract all communications (RUN THIS COMMAND NOW)
 
@@ -41,7 +41,7 @@ Replace `GOLDEN_TICKET_ID` with the ID found in Step B, then run:
 ~/.cursor/skills/_shared/zd-api.sh comments GOLDEN_TICKET_ID 0
 ```
 
-You MUST run this command. Do not skip it. Do not use comments you already saw in the customer ticket.
+You MUST run this command. Do not skip it. The Golden Ticket is a **different ticket** from #{{TICKET_ID}} — you need its comments, not the ones you already read.
 
 ### Incident Comms — Step D: Output
 Print in chat, newest first:
