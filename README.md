@@ -65,6 +65,8 @@ The `zd-api.sh` helper filters and compacts API responses to minimize token cons
 ├── flare-profiling-analysis/       Go pprof analysis
 ├── logs-investigator/              HQ (Org 2) log search across 7 topic groups (Datadog extension)
 │   └── setup.sh                    Installs Datadog extension + registers MCP endpoint
+├── monitor-admin/                  Monitor triggering investigation (VPN-gated, MCP server)
+│   └── mcp-server/                 Node.js MCP server for Monitor Admin APIs
 ├── snagit-screen-record/           Screen recording via Snagit
 └── text-shortcut-manager/          Espanso text shortcuts
 ```
@@ -101,6 +103,12 @@ The `zd-api.sh` helper filters and compacts API responses to minimize token cons
 | Skill | Description | Trigger |
 |-------|-------------|---------|
 | `logs-investigator` | Search Datadog HQ (Org 2) logs — login issues, email delivery, audit history, monitor alerts, integrations, Synthetics | "search HQ logs", "check org 2 logs", "why wasn't the alert sent" |
+
+### Monitor Investigation Skills (VPN-gated)
+
+| Skill | Description | Trigger |
+|-------|-------------|---------|
+| `monitor-admin` | Investigate monitor triggering issues — actual values vs thresholds, margin analysis, alert history, downtime checks | "why did monitor trigger", "investigate monitor" |
 
 ### Utility Skills
 
