@@ -55,6 +55,7 @@ This is a legal/compliance requirement. No exceptions.
 
 ## Investigation Steps
 
+0. **Recording analysis** — Run `zendesk-ticket-recording-diagnose` for ZD-{TICKET_ID}. If a recording is found, its findings are included in the report. If not found, skip silently.
 1. **Read ticket** — Full content via Chrome JS (real-time) or Glean fallback (`user-glean_ai-code-read_document`)
 2. **Download attachments** — List and download attachments via `zendesk-attachment-downloader` (flares, logs, screenshots). If a flare is found, extract and run appropriate analysis skills.
 3. **Similar tickets** — Search Zendesk for resolved tickets with matching symptoms

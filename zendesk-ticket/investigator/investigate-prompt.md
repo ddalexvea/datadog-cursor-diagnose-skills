@@ -1,6 +1,23 @@
 Investigate Zendesk ticket #{{TICKET_ID}} (Subject: {{SUBJECT}}).
 
-## Step 0: AI Compliance Check (MANDATORY)
+## Step 0: Recording Analysis (run first, before reading the ticket)
+
+Check if the TSE captured a session recording for this ticket.
+
+```bash
+TICKET_ID="{{TICKET_ID}}"
+for f in ~/.kanban/recordings/*.json; do
+  label=$(python3 -c "import json; d=json.load(open('$f')); print(d.get('label',''))" 2>/dev/null)
+  if echo "$label" | grep -qi "$TICKET_ID"; then
+    echo "FOUND: $f | label=$label"
+  fi
+done
+```
+
+- **If no recording found**: output `No recording found for ZD-{{TICKET_ID}}. Skipping recording analysis.` and continue to Step 1. Do NOT open any browser or app.
+- **If recording(s) found**: run the `zendesk-ticket-recording-diagnose` skill for each matching session. Include findings in the report under `## Recording Analysis`.
+
+## Step 0b: AI Compliance Check (MANDATORY)
 
 ```bash
 ~/.cursor/skills/_shared/zd-api.sh ticket {{TICKET_ID}}
