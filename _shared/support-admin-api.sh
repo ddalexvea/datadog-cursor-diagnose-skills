@@ -12,6 +12,7 @@
 #   logs <query> [from] [to]         Search logs
 #   metrics <query> [from] [to]      Query metrics timeseries
 #   metrics-gaps <query> [from] [to] Check for missing datapoints (raw pointlist)
+#   dbm-probe                        Probe DBM API endpoints (APM>DBM page)
 #   hosts [filter]                   List hosts
 #   monitors [query]                 List monitors
 #
@@ -655,6 +656,69 @@ JSEOF
         rm -f "$TMPJS"
         ;;
 
+    dbm-probe)
+        TAB=$(require_tab)
+        TMPJS=$(mktemp /tmp/sa-dbm-probe-XXXXXXXX)
+        cat > "$TMPJS" << 'JSEOF'
+(function(){
+  try {
+    var endpoints = [
+      '/api/v1/databases',
+      '/api/v1/dbm/databases',
+      '/api/v1/dbm/hosts',
+      '/api/v2/dbm/databases',
+      '/api/v2/dbm/hosts',
+      '/api/v2/dbm/queries',
+      '/api/v2/databases',
+      '/api/beta/databases',
+      '/api/beta/dbm/databases',
+      '/internal/api/v1/databases',
+      '/dbm/v1/databases',
+      '/apm/databases'
+    ];
+    var results = [];
+    for (var i = 0; i < endpoints.length; i++) {
+      var url = endpoints[i];
+      var xhr = new XMLHttpRequest();
+      xhr.open('GET', url + (url.indexOf('?') >= 0 ? '&' : '?') + '_=' + Date.now(), false);
+      try {
+        xhr.send();
+        results.push({ url: url, status: xhr.status, ok: xhr.status >= 200 && xhr.status < 300 });
+      } catch (e) {
+        results.push({ url: url, status: 'error', ok: false, error: e.message });
+      }
+    }
+    var from = Math.floor(Date.now() / 1000) - 3600;
+    var to = Math.floor(Date.now() / 1000);
+    var metricUrls = [
+      '/api/v1/query?from=' + from + '&to=' + to + '&query=' + encodeURIComponent('avg:postgresql.queries.query_time{*}'),
+      '/api/v1/query?from=' + from + '&to=' + to + '&query=' + encodeURIComponent('avg:mysql.queries.query_time{*}'),
+      '/api/v1/query?from=' + from + '&to=' + to + '&query=' + encodeURIComponent('sum:postgresql.queries.query_count{*}')
+    ];
+    for (var j = 0; j < metricUrls.length; j++) {
+      var murl = metricUrls[j];
+      var xhr2 = new XMLHttpRequest();
+      xhr2.open('GET', murl, false);
+      try {
+        xhr2.send();
+        var hasData = false;
+        if (xhr2.status === 200) {
+          var d = JSON.parse(xhr2.responseText);
+          hasData = (d.series && d.series.length > 0);
+        }
+        results.push({ url: murl.split('?')[0] + '?... (DBM metric)', status: xhr2.status, ok: xhr2.status === 200, has_data: hasData });
+      } catch (e) {
+        results.push({ url: murl.substring(0, 50) + '...', status: 'error', ok: false });
+      }
+    }
+    return '<METADATA>\n  <note>Probe DBM endpoints. Run with Support Admin tab on APM>DBM page for best results.</note>\n</METADATA>\n<JSON_DATA>\n' + JSON.stringify(results, null, 2) + '\n</JSON_DATA>';
+  } catch(e) { return 'ERROR: ' + e.message; }
+})()
+JSEOF
+        chrome_js_file "$(parse_win "$TAB")" "$(parse_tab "$TAB")" "$TMPJS"
+        rm -f "$TMPJS"
+        ;;
+
     hosts)
         FILTER="${1:-}"
         FILTER_JSON=$(printf '%s' "${FILTER:-}" | python3 -c "import sys,json; print(json.dumps(sys.stdin.read()))")
@@ -763,6 +827,7 @@ JSEOF
         echo "  logs <query> [from] [to]         Search logs"
         echo "  metrics <query> [from] [to]      Query metrics timeseries"
         echo "  metrics-gaps <query> [from] [to] Check for missing datapoints (raw pointlist)"
+        echo "  dbm-probe                        Probe DBM API endpoints (APM>DBM)"
         echo "  hosts [filter]                   List hosts"
         echo "  monitors [query]                 List monitors"
         echo ""

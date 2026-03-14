@@ -48,10 +48,10 @@ If an agent receives a message matching any of these patterns:
 - Called by `investigator` after downloading a flare
 
 Then:
-1. Locate the flare (from path, downloads, or ticket context)
+1. Locate the flare at `~/Downloads/flare-extracted-{{TICKET_ID}}/` or any matching path
 2. Extract if needed
 3. Follow the steps in `flare-analysis-prompt.md`
-4. Output report
+4. Output report to `investigations/ZD-{{TICKET_ID}}/flare-analysis.md`
 
 ## Analysis Workflow
 
