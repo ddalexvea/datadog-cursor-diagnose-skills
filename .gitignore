@@ -1,6 +1,3 @@
 # Local-only / experimental - not pushed to shared repo
-_shared/support-admin-query.sh
-count-host-in-org/
 count-host-running-agent/
 test/
-support-admin/
