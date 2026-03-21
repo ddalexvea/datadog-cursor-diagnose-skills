@@ -101,7 +101,19 @@ rm -f /tmp/zd_list_attachments.scpt /tmp/zd_download.scpt
 
 Look for resolved tickets with similar symptoms. Note ticket IDs and solutions.
 
-## Step 3: Search internal documentation
+## Step 3b: Search Slack for related discussions, incidents, or known bugs
+- Tool: user-glean_ai-code-search
+- query: error message or key symptoms from the ticket
+- app: slack
+
+Look for:
+- **Incident reports** — is this a known ongoing issue? Check for threads mentioning the same error or product behavior.
+- **Bug reports** — has a spec team already identified this as a bug? Look for JIRA links or "known issue" mentions.
+- **Similar customer reports** — other TSEs asking about the same symptom in spec channels.
+
+If you find a relevant Slack thread, note the channel, date, and key findings in the investigation report.
+
+## Step 3c: Search internal documentation
 - Tool: user-glean_ai-code-search
 - query: relevant product/feature keywords
 - app: confluence
@@ -267,13 +279,17 @@ _(Every code reference MUST include a clickable GitHub link. Never write file na
 
 At the very end of the file (after the last timeline entry), ALWAYS include these two sections:
 
-**1. Customer Response Draft** (if investigation is complete enough to draft a response):
+**1. Customer Response Draft** (ALWAYS generate if "Next: waiting" or if investigation is complete):
 
 ```markdown
 
 ## Customer Response Draft
 <plain text response the TSE can copy-paste to the customer>
 ```
+
+**When "Next: waiting":** Generate a response draft that specifically asks for the missing info. Example: "To help diagnose this issue further, please provide: 1) agent flare, 2) recent logs from the affected host, 3) your current configuration for X."
+
+**When "Next: ready_to_review":** Generate a response draft with your analysis, workaround, or solution.
 
 The response draft must contain plain text only — NO markdown headers, bold, italic, code blocks, or bullet points inside the draft content. Start with a greeting using the customer's first name. Direct, professional tone — no hedging. Include specific commands and doc links as needed. End with: "Best regards,\n{AGENT_NAME}\n{AGENT_TITLE} | Datadog" (use the assignee name/title from the ticket)
 
@@ -287,8 +303,8 @@ The response draft must contain plain text only — NO markdown headers, bold, i
 ```
 
 Rules for Next:
-- **"ready_to_review"** — investigation is complete and a response can be drafted for the customer
-- **"waiting"** — need more info from the customer before proceeding
+- **"ready_to_review"** — investigation is complete and a response can be drafted for the customer. Response draft MUST be included.
+- **"waiting"** — need more info from the customer before proceeding. Response draft MUST ask for the specific missing info (flare, logs, config, etc.). This moves the card to the "waiting" column and notifies TSE to send the response.
 - **"reproduction"** — need to reproduce the issue in a test environment
 - **"investigation"** — need more investigation time (e.g. waiting on internal research, flare analysis pending)
 
