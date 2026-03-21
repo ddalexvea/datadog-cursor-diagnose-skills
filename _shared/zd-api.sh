@@ -93,6 +93,13 @@ case "$COMMAND" in
         chrome_js "$(parse_win "$TAB")" "$(parse_tab "$TAB")" "var xhr = new XMLHttpRequest(); xhr.open('GET', '/api/v2/tickets/${TICKET_ID}.json', false); xhr.send(); if (xhr.status === 200) { var t = JSON.parse(xhr.responseText).ticket; ${TAG_FILTER_JS} 'SUBJECT: ' + t.subject + '\\\\nSTATUS: ' + t.status + '\\\\nCUSTOM_STATUS_ID: ' + (t.custom_status_id || '') + '\\\\nASSIGNEE_ID: ' + (t.assignee_id || '') + '\\\\nCHANNEL: ' + ((t.via && t.via.channel) || '') + '\\\\nPRIORITY: ' + (t.priority || 'none') + '\\\\nCREATED: ' + t.created_at + '\\\\nUPDATED: ' + t.updated_at + '\\\\n' + tagStr; } else { 'ERROR: HTTP ' + xhr.status; }"
         ;;
 
+    tickets_batch)
+        # Fetch multiple tickets in one API call: zd-api.sh tickets_batch 123,456,789
+        IDS="${1:?Usage: zd-api.sh tickets_batch <comma-separated-IDs>}"
+        TAB=$(require_tab)
+        chrome_js "$(parse_win "$TAB")" "$(parse_tab "$TAB")" "var xhr = new XMLHttpRequest(); xhr.open('GET', '/api/v2/tickets/show_many.json?ids=${IDS}', false); xhr.send(); if (xhr.status === 200) { var tickets = JSON.parse(xhr.responseText).tickets; var result = ''; tickets.forEach(function(t) { ${TAG_FILTER_JS} result += '===TICKET:' + t.id + '\\\\nSUBJECT: ' + t.subject + '\\\\nSTATUS: ' + t.status + '\\\\nCUSTOM_STATUS_ID: ' + (t.custom_status_id || '') + '\\\\nASSIGNEE_ID: ' + (t.assignee_id || '') + '\\\\nCHANNEL: ' + ((t.via && t.via.channel) || '') + '\\\\nPRIORITY: ' + (t.priority || 'none') + '\\\\nCREATED: ' + t.created_at + '\\\\nUPDATED: ' + t.updated_at + '\\\\n' + tagStr + '\\\\n'; }); result; } else { 'ERROR: HTTP ' + xhr.status; }"
+        ;;
+
     comments)
         TICKET_ID="${1:?Usage: zd-api.sh comments <ID> [max_chars]}"
         MAX_CHARS="${2:-500}"
