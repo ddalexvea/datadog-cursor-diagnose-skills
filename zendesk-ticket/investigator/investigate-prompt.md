@@ -268,13 +268,26 @@ Write the full file with this structure:
 
 _(Every code reference MUST include a clickable GitHub link. Never write file names as plain text.)_
 
+**Slack Threads** _(if relevant threads found)_
+| Channel | Date | Summary | Link |
+|---------|------|---------|------|
+| #channel | YYYY-MM-DD | key finding or incident reference | thread URL |
+
 **Initial Assessment**
 - Category: (agent, logs, APM, infra, etc.)
-- Likely cause:
+- Likely cause: (with source — e.g. "based on [similar ticket #123456]", "per [docs](url)", "confirmed in [flare status.log]")
 - Suggested first steps:
-  1. ...
-  2. ...
-  3. ...
+  1. ... — source: [doc/code/ticket link]
+  2. ... — source: [doc/code/ticket link]
+  3. ... — source: [doc/code/ticket link]
+
+⚠️ Every assumption, finding, and workaround MUST cite its source inline:
+- Ticket data → `[comment #N]` or `[flare: filename]`
+- Documentation → `[docs](url)`
+- Code → `[file.py → func()](github_url)`
+- Similar ticket → `[ZD-#ID](zendesk_url)`
+- Slack thread → `[#channel](thread_url)`
+- If no source exists, explicitly state "no source found — based on agent knowledge"
 ```
 
 At the very end of the file (after the last timeline entry), ALWAYS include these two sections:
@@ -289,7 +302,7 @@ At the very end of the file (after the last timeline entry), ALWAYS include thes
 
 **When "Next: waiting":** Generate a response draft that specifically asks for the missing info. Example: "To help diagnose this issue further, please provide: 1) agent flare, 2) recent logs from the affected host, 3) your current configuration for X."
 
-**When "Next: ready_to_review":** Generate a response draft with your analysis, workaround, or solution.
+**When "Next: ready_to_review":** Generate a response draft with your analysis, workaround, or solution. Every recommendation and workaround MUST include: a doc link (https://docs.datadoghq.com/...), specific commands to run, or a GitHub code reference. Never tell the customer "do X" without providing the source or exact steps.
 
 The response draft must contain plain text only — NO markdown headers, bold, italic, code blocks, or bullet points inside the draft content. Start with a greeting using the customer's first name. Direct, professional tone — no hedging. Include specific commands and doc links as needed. End with: "Best regards,\n{AGENT_NAME}\n{AGENT_TITLE} | Datadog" (use the assignee name/title from the ticket)
 
@@ -358,6 +371,8 @@ If the ticket status has changed since the header was written (e.g. Open → Pen
 - If no docs found, say so
 - ALWAYS include links to relevant public docs, internal docs, and GitHub code
 - NEVER reference code files without a clickable GitHub link (e.g. `https://github.com/DataDog/REPO/blob/main/path/to/file`)
+- EVERY finding, assumption, and workaround MUST cite its source inline — doc URL, GitHub link, ticket ID, Slack thread, or flare log path. If no source, say "no source — agent knowledge"
+- The Customer Response Draft MUST include doc links and/or commands for every recommendation — never tell the customer to do something without a reference
 - Be concise but thorough
 - NEVER overwrite previous timeline entries — always append
 - Use the current timestamp for each new entry
