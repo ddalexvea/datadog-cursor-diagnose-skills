@@ -14,37 +14,10 @@ Download config files, manifests, and flares that the customer attached to the t
 
 ### List attachments
 ```bash
-osascript -e '
-tell application "Google Chrome"
-  set zenTab to missing value
-  repeat with w in windows
-    repeat with t in tabs of w
-      if URL of t contains "zendesk.com" then
-        set zenTab to t
-        exit repeat
-      end if
-    end repeat
-    if zenTab is not missing value then exit repeat
-  end repeat
-  if zenTab is missing value then return "ERROR: No Zendesk tab found in Chrome"
-  execute zenTab javascript "
-    (function() {
-      var xhr = new XMLHttpRequest();
-      xhr.open(\"GET\", \"/api/v2/tickets/{{TICKET_ID}}/comments.json?include=users\", false);
-      xhr.send();
-      if (xhr.status !== 200) return \"ERROR: \" + xhr.status;
-      var data = JSON.parse(xhr.responseText);
-      var atts = [];
-      data.comments.forEach(function(c) {
-        (c.attachments || []).forEach(function(a) {
-          atts.push(a.file_name + \"|\" + a.size + \"|\" + a.content_type + \"|\" + a.content_url);
-        });
-      });
-      return atts.length ? atts.join(\"\\n\") : \"NO_ATTACHMENTS\";
-    })()
-  "
-end tell'
+~/.cursor/skills/_shared/zd-api.sh attachments {{TICKET_ID}}
 ```
+
+Output format: `filename | size_MB | content_type | content_url` (one per line), or `NO_ATTACHMENTS`.
 
 ### Download relevant files
 Focus on files that help reproduce the issue:
@@ -55,37 +28,15 @@ Focus on files that help reproduce the issue:
 
 Skip screenshots, images, and unrelated files.
 
-For each relevant attachment, download it:
+For each relevant attachment, download it using curl (faster, no browser interaction):
 ```bash
-osascript -e '
-tell application "Google Chrome"
-  set zenTab to missing value
-  repeat with w in windows
-    repeat with t in tabs of w
-      if URL of t contains "zendesk.com" then
-        set zenTab to t
-        exit repeat
-      end if
-    end repeat
-    if zenTab is not missing value then exit repeat
-  end repeat
-  execute zenTab javascript "
-    (function() {
-      var a = document.createElement(\"a\");
-      a.href = \"CONTENT_URL_HERE\";
-      a.download = \"FILENAME_HERE\";
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      return \"Download triggered: FILENAME_HERE\";
-    })()
-  "
-end tell'
+mkdir -p /tmp/attachments-zd-{{TICKET_ID}}
+curl -sL -o "/tmp/attachments-zd-{{TICKET_ID}}/FILENAME_HERE" "CONTENT_URL_HERE"
 ```
 
-Wait for downloads to complete, then check:
+Verify the download:
 ```bash
-ls -la ~/Downloads/FILENAME_HERE
+ls -la /tmp/attachments-zd-{{TICKET_ID}}/
 ```
 
 ### Extract agent flare (if downloaded)
