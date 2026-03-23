@@ -28,15 +28,14 @@ Focus on files that help reproduce the issue:
 
 Skip screenshots, images, and unrelated files.
 
-For each relevant attachment, download it using curl (faster, no browser interaction):
+For each relevant attachment, download it via `zd-api.sh` (uses Chrome's authenticated session):
 ```bash
-mkdir -p /tmp/attachments-zd-{{TICKET_ID}}
-curl -sL -o "/tmp/attachments-zd-{{TICKET_ID}}/FILENAME_HERE" "CONTENT_URL_HERE"
+~/.cursor/skills/_shared/zd-api.sh download "CONTENT_URL_HERE" "FILENAME_HERE"
 ```
 
-Verify the download:
+Downloads go to `~/Downloads/`. Wait a few seconds, then verify:
 ```bash
-ls -la /tmp/attachments-zd-{{TICKET_ID}}/
+ls -la ~/Downloads/FILENAME_HERE
 ```
 
 ### Extract agent flare (if downloaded)
