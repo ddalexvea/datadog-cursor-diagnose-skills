@@ -174,12 +174,29 @@ If a similar sandbox is found, adapt it. If not, generate a new one using the st
 
 ## Phase 5: Retrieve Credentials
 
-For ALL tiers, get the Datadog credentials:
+For ALL tiers, get the Datadog credentials using one of the methods below:
+
+### Method 1: Kubernetes Secrets (Default)
 
 ```bash
 DD_API_KEY=$(kubectl get secret datadog-secret -n default -o jsonpath='{.data.api-key}' | base64 -d)
 DD_APP_KEY=$(kubectl get secret datadog-secret -n default -o jsonpath='{.data.app-key}' | base64 -d)
 ```
+
+### Method 2: 1Password (Alternative - Local Development)
+
+If you prefer to use 1Password for credential management instead of kubectl secrets:
+
+```bash
+# Requires 1Password CLI installed and authenticated
+# Install: brew install 1password-cli
+# Authenticate: op signin
+
+DD_API_KEY=$(op read "op://Employee/Datadog API Key/password")
+DD_APP_KEY=$(op read "op://Employee/Datadog App Key/password")
+```
+
+**Choose Method 1 (kubectl) for production sandboxes. Use Method 2 (1Password) only for local development.**
 
 **CRITICAL — Verify the organization is the sandbox org, NEVER the production "Datadog" org:**
 

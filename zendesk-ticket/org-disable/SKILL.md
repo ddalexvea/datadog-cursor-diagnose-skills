@@ -5,6 +5,9 @@ kanban: true
 kanban_columns: triage
 ---
 
+## Parameters
+Ticket ID: `{{TICKET_ID}}`
+
 # Org Disable Workflow
 
 Handles Datadog organization disable requests from Zendesk tickets. Reads the ticket, researches the org structure, identifies the CSM, and generates a complete step-by-step workflow with copy-paste-ready Zendesk notes and customer messages.

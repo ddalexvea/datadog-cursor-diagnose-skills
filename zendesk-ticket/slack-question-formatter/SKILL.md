@@ -5,6 +5,10 @@ kanban: true
 kanban_columns: triage,investigation
 ---
 
+## Parameters
+Ticket ID: `{{TICKET_ID}}`
+
+
 # Slack Question Formatter
 
 Converts investigation or reproduction findings into a well-formatted Slack message for the owning spec team.

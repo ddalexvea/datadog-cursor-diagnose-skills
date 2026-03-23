@@ -3,6 +3,10 @@ name: logs-investigator
 description: Search Datadog HQ (Org 2) logs to investigate customer issues using the official Datadog MCP server. Covers login failures, SAML errors, password resets, email delivery, audit history, monitor alert delivery, AWS/GCP/Azure integration errors, Synthetics, and log archive issues. Use when the user asks to search HQ logs, check org 2 logs, investigate a login issue, why an alert wasn't sent, email not received, audit history, integration errors, or any query that requires looking at internal Datadog platform logs.
 ---
 
+## Parameters
+Customer Org ID: `{{ORG_ID}}`
+
+
 # Logs Investigator
 
 Search Datadog HQ (Org 2) logs to diagnose customer issues using a curated library of 30+ internal log queries, organised by topic.

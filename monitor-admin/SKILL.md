@@ -3,6 +3,11 @@ name: monitor-admin
 description: Investigate monitor triggering issues using Datadog's internal Monitor Admin APIs. Use when the user asks why a monitor triggered, didn't trigger, how close it was to triggering, what the actual metric values were vs thresholds, or to analyze monitor state for an incident. Triggers on: investigate monitor, why did monitor trigger, monitor didn't trigger, monitor threshold analysis, monitor margin analysis, monitor admin.
 ---
 
+## Parameters
+Customer Org ID: `{{ORG_ID}}`
+Monitor ID: `{{MONITOR_ID}}`
+
+
 # Monitor Admin Investigation
 
 Investigates monitor triggering issues using Datadog's internal Monitor Admin APIs. Answers questions like:

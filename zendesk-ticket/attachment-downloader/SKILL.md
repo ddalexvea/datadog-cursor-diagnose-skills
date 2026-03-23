@@ -5,6 +5,10 @@ kanban: true
 kanban_columns: investigation,reproduction
 ---
 
+## Parameters
+Ticket ID: `{{TICKET_ID}}`
+
+
 # Zendesk Attachment Downloader
 
 Downloads attachments from Zendesk tickets through the user's authenticated Chrome session using `osascript` + Chrome JavaScript execution. This bypasses the Glean MCP limitation where attachment download URLs are not available.

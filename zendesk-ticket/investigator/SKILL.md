@@ -5,6 +5,10 @@ kanban: true
 kanban_columns: investigation
 ---
 
+## Parameters
+Ticket ID: `{{TICKET_ID}}`
+
+
 # Ticket Investigator
 
 Deep investigation skill for a specific Zendesk ticket. Reads the ticket, searches for similar past cases, checks internal documentation, gathers customer context, and writes a structured investigation report.

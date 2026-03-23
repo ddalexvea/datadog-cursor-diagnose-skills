@@ -5,6 +5,10 @@ kanban: true
 kanban_columns: triage
 ---
 
+## Parameters
+Ticket ID: `{{TICKET_ID}}`
+
+
 # Incident Communications Finder
 
 Given a Zendesk ticket that is linked to a Datadog incident, this skill:

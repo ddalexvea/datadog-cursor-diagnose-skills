@@ -5,6 +5,10 @@ kanban: true
 kanban_columns: resolved
 ---
 
+## Parameters
+Ticket ID: `{{TICKET_ID}}`
+
+
 # Satisfaction Review
 
 Checks Zendesk satisfaction ratings on resolved tickets and takes appropriate action:

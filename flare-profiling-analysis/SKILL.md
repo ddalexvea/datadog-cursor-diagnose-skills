@@ -15,19 +15,18 @@ Triggers: "analyze flare profiling", "flare memory leak", "flare cpu analysis", 
 
 ## Prerequisites
 
-- A locally extracted flare directory containing a `profiles/` folder
+- A locally extracted flare directory containing a `profiles/` folder at `~/Downloads/flare-extracted-{{TICKET_ID}}/`
   - Generated via `internal_profiling: enabled: true` in the agent config
-- The user provides the path to the flare directory
 - **Go must be installed** (`go tool pprof` is required)
   - If Go is not found, the skill will fail with install instructions
 
-## How to Use
-
-1. Say **"analyze this flare for profiling: /path/to/flare/hostname/"**
-2. The agent reads this skill, follows `analyze-prompt.md`
-3. Outputs a structured profiling report
-
 ## Input
+
+Ticket ID: `{{TICKET_ID}}`
+
+Locate the flare at `~/Downloads/flare-extracted-{{TICKET_ID}}/` or search `~/Downloads/` for a directory matching `*{{TICKET_ID}}*`. Use the first match found.
+
+Output report to `investigations/ZD-{{TICKET_ID}}/flare-profiling-analysis.md`.
 
 The skill expects a path to an **extracted** flare directory containing:
 

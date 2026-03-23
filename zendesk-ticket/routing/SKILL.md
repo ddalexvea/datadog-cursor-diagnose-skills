@@ -5,6 +5,10 @@ kanban: true
 kanban_columns: triage
 ---
 
+## Parameters
+Ticket ID: `{{TICKET_ID}}`
+
+
 # Ticket Routing Intelligence
 
 Given a Zendesk ticket (URL, ID, or description), identify the owning TS specialization,

@@ -15,22 +15,22 @@ Triggers: "analyze flare network", "flare connectivity", "forwarder analysis", "
 
 ## Prerequisites
 
-- A locally extracted flare directory (e.g., `~/Downloads/flare-2024-.../hostname-xxx/`)
-- The user provides the path to the flare directory
-
-## How to Use
-
-1. Say **"analyze this flare for network issues: ~/Downloads/flare-2024-.../hostname/"**
-2. The agent reads this skill, follows `analyze-prompt.md`
-3. Outputs a structured network health summary
+- A locally extracted flare directory at `~/Downloads/flare-extracted-{{TICKET_ID}}/` or any matching path
+- **Go must be installed** for profiling sections (optional)
 
 ## Input
+
+Ticket ID: `{{TICKET_ID}}`
+
+Locate the flare at `~/Downloads/flare-extracted-{{TICKET_ID}}/` or search `~/Downloads/` for a directory matching `*{{TICKET_ID}}*`. Use the first match found.
+
+Output report to `investigations/ZD-{{TICKET_ID}}/flare-network-analysis.md`.
 
 The skill expects a path to an **extracted** flare directory containing at minimum:
 - `status.log`
 - `expvar/forwarder`
 
-If the user provides a `.zip`, unzip it first.
+If only a `.zip` is found, unzip it first.
 
 ## Files Analyzed
 

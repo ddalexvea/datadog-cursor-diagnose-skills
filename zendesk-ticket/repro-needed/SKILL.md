@@ -5,6 +5,10 @@ kanban: true
 kanban_columns: investigation
 ---
 
+## Parameters
+Ticket ID: `{{TICKET_ID}}`
+
+
 # Evaluate Need of Reproduction
 
 Decides whether a ticket requires hands-on reproduction or if the issue can be resolved from existing knowledge (docs, past tickets, flare analysis).

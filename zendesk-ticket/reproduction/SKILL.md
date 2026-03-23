@@ -5,6 +5,10 @@ kanban: true
 kanban_columns: reproduction
 ---
 
+## Parameters
+Ticket ID: `{{TICKET_ID}}`
+
+
 # Reproduce Ticket Issue
 
 Hands-on reproduction of a Zendesk ticket issue in a sandbox environment. Picks the cheapest path to reproduce, executes it, tests workarounds, and documents everything.
@@ -137,7 +141,10 @@ Pick the **simplest possible tier**. Never use minikube when curl suffices.
 
 - **Site**: Always `datadoghq.com`
 - **Organization**: ALWAYS verify the org is the sandbox org, NEVER the "Datadog" production org
-- **Credentials**: Always from kubectl secret `datadog-secret` in `default` namespace (`api-key` + `app-key`), never hardcoded
+- **Credentials**:
+  - **Primary (Production sandboxes)**: From kubectl secret `datadog-secret` in `default` namespace (`api-key` + `app-key`)
+  - **Alternative (Local development)**: From 1Password vault `Employee` (`Datadog API Key` + `Datadog App Key`) — requires 1Password CLI
+  - **NEVER hardcode** — always use secure storage
 - **Cleanup**: Document cleanup commands but NEVER execute them automatically — TSE may want to inspect
 - **Helm vs Operator**: Match what the customer uses. Default to Helm
 

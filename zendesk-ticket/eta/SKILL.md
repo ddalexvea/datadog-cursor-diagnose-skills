@@ -5,6 +5,10 @@ kanban: true
 kanban_columns: triage
 ---
 
+## Parameters
+Ticket ID: `{{TICKET_ID}}`
+
+
 # Estimate Time of Resolution
 
 Estimates how long a ticket will take to resolve, broken into active work time, calendar time, and time to next meaningful response. Accounts for the current lifecycle phase (remaining time, not total).

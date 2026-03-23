@@ -5,6 +5,10 @@ kanban: true
 kanban_columns: investigation
 ---
 
+## Parameters
+Ticket ID: `{{TICKET_ID}}`
+
+
 # Jira Escalation Creator
 
 Converts investigation or reproduction findings into a ready-to-paste Jira bug or feature request ticket.

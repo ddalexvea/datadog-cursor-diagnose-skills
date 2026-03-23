@@ -5,6 +5,9 @@ kanban: true
 kanban_columns: triage
 ---
 
+## Parameters
+Ticket ID: `{{TICKET_ID}}`
+
 # Estimate Ticket Difficulty
 
 Scores a ticket from 1 (trivial) to 10 (expert-level) based on objective factors. Designed to feed into time-of-resolution estimation and help prioritize the queue.

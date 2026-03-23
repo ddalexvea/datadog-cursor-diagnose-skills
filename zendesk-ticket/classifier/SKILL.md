@@ -5,6 +5,10 @@ kanban: true
 kanban_columns: triage
 ---
 
+## Parameters
+Ticket ID: `{{TICKET_ID}}`
+
+
 # Ticket Classifier
 
 Classifies a Zendesk ticket into one of 7 categories based on its content, with confirmation checks to avoid misclassification.

@@ -1,202 +1,202 @@
 [
   {
-    "phrase": "thank you for reaching out to datadog",
-    "count": 6
+    "phrase": "consensus error: no skills for column ready_to_review",
+    "count": 49
+  },
+  {
+    "phrase": "summarize where we left off, then tell me the recommended next action",
+    "count": 29
+  },
+  {
+    "phrase": "mark them as in_progress as you work, starting with the first one",
+    "count": 29
+  },
+  {
+    "phrase": "don't stop until you have completed all the to-dos",
+    "count": 29
+  },
+  {
+    "phrase": "do not edit the plan file itself",
+    "count": 29
+  },
+  {
+    "phrase": "context files  read all and merge the information:",
+    "count": 26
+  },
+  {
+    "phrase": "md with a tldr of the current chat",
+    "count": 26
   },
   {
     "phrase": "my name is alexandre, and i am a technical support engineer here at datadog",
-    "count": 5
+    "count": 17
   },
   {
-    "phrase": "ill be assisting you with your request today",
-    "count": 4
+    "phrase": "thank you for reaching out to datadog",
+    "count": 17
   },
   {
-    "phrase": "after redeploying workloads, pods appear in a pending state for several minutes and eventually transition to an error status, as shown in the attached screenshots",
-    "count": 3
+    "phrase": "i'll be assisting you with your request today",
+    "count": 14
   },
   {
-    "phrase": "even though we see some stats about the containers the issue it self is that why we are seeing these errors on our agents",
-    "count": 3
+    "phrase": "you are a background ticket watcher. check for new zendesk tickets assigned to alexandre vea. run two searches in parallel: search 1 - open tickets: - tool: user-glean_ai-code-search - query:  - app: zendesk - dynamic_search_result_filters: assignee:alexandre veastatus:open search 2 - pending tickets: - tool: user-glean_ai-code-search - query:  - app: zendesk - dynamic_search_result_filters: assignee:alexandre veastatus:pending - exhaustive: true compare the results against the file investigations_processed.log read it first. for any ticket id not already in _processed.log: 1. append the ticket id and current timestamp to investigations_processed.log format: ticket_idyyyy-mm-ddthh:mm:ssz 2. write a brief alert to investigations_alert.md with: ticket id, subject, customer, priority, status if all tickets are already in _processed.log, just write 'no new tickets - 2026-02-25' to investigations_last_run.log and stop. keep it short. do not investigate tickets, just detect new ones.",
+    "count": 12
   },
   {
-    "phrase": "verify volume with matching name exists in allowlist",
-    "count": 3
+    "phrase": "log, just write 'no new tickets - 2026-02-25' to investigations_last_run",
+    "count": 12
   },
   {
-    "phrase": "3have you check in log explore via live tail",
-    "count": 3
+    "phrase": "append the ticket id and current timestamp to investigations_processed",
+    "count": 12
   },
   {
-    "phrase": "in minikube to answer this questions: i would like that the operator installed, automatically sets a agent version that works for the operator version do you know if this is something that will be looked into on your side? also, when i put in the clusteragent image tag override as you mentioned, nothing happened. i manually had to change the cluster agent deployment to use the 7.72.0 tag.",
-    "count": 2
+    "phrase": "compare the results against the file investigations_processed",
+    "count": 12
   },
   {
-    "phrase": "i would like that the operator installed, automatically sets a agent version that works for the operator version do you know if this is something that will be looked into on your side",
-    "count": 2
+    "phrase": "check for new zendesk tickets assigned to alexandre vea",
+    "count": 12
   },
   {
-    "phrase": "we are currently setting up datadog monitoring on our aws eks clusters that run exclusively on fargate there are no ec2 worker nodes or ecs workloads in this environment",
-    "count": 2
+    "phrase": "md with: ticket id, subject, customer, priority, status",
+    "count": 12
   },
   {
-    "phrase": "we need help; i don't know if there are any limitations or if something needs to be enabled to receive these logs, or if there's a specific configuration required",
-    "count": 2
+    "phrase": "do not investigate tickets, just detect new ones",
+    "count": 12
   },
   {
-    "phrase": "additionally, inside the injected datadog agent sidecar container, we observe repeated connection and initialization errors",
-    "count": 2
+    "phrase": "for any ticket id not already in _processed",
+    "count": 12
   },
   {
-    "phrase": "don't hesitate to re-open the ticket and share all the relevant information, if it's not helping your current issue",
-    "count": 2
+    "phrase": "write a brief alert to investigations_alert",
+    "count": 12
   },
   {
-    "phrase": "based on the flare analysis, the issue is likely caused by the remote tagger enabled by default in agent 7",
-    "count": 2
+    "phrase": "if all tickets are already in _processed",
+    "count": 12
   },
   {
-    "phrase": "since the root cause has been identified and a workaround has been shared, i go ahead and close this case",
-    "count": 2
+    "phrase": "you are a background ticket watcher",
+    "count": 12
   },
   {
-    "phrase": "datadog has been deployed using the helm charts with configuration provided through our values-fargate",
-    "count": 2
+    "phrase": "stringify passed: false, error: e",
+    "count": 12
   },
   {
-    "phrase": "i only need the one assigned to me, also can it be trigerreg automatically by one of your subagent?",
-    "count": 2
+    "phrase": "run two searches in parallel:",
+    "count": 12
   },
   {
-    "phrase": "i only need the one assigned to me, also can it be trigerreg automatically by one of your subagent",
-    "count": 2
+    "phrase": "search 2 - pending tickets:",
+    "count": 12
   },
   {
-    "phrase": "specifically, we are unable to properly see pods and their states in datadog kubernetes monitoring",
-    "count": 2
+    "phrase": "zendesk status open  no override, using gate logic",
+    "count": 9
   },
   {
-    "phrase": "hello, we are trying to configure a system to send logs from a kafka queue via otlp to datadog",
-    "count": 2
+    "phrase": "test results   all passed all 3 steps passed. skill test verified with real execution.  step 1 description: output: manual step \u00e4\u00ee skipped  step 2 output: session is valid  step 3 output: datadog.agent.running \u00e4\u00ee last value: 5 formatting issue ? encoding ?",
+    "count": 8
   },
   {
-    "phrase": "also, when i put in the clusteragent image tag override as you mentioned, nothing happened",
-    "count": 2
+    "phrase": "rule_id:potential_web_shell_parent_v2 or database_shell_execution or java_shell_execution_parent or jupyter_shell_execution or php_shell or webdriver_spawned_shell or cups_spawned_shell or systemd_spawned_shell_v2 process",
+    "count": 8
   },
   {
-    "phrase": "at the moment, this behavior prevents reliable monitoring of workloads running on fargate",
-    "count": 2
+    "phrase": "also please when cliking on skill in skill creator, display in full page,the.skill content, in top add a part to playing the skillplease add the field related to needed info based on the skill",
+    "count": 8
   },
   {
-    "phrase": "you are trying to configure a system to send logs from a kafka queue via otlp to datadog",
-    "count": 2
+    "phrase": "rule_id:find_credentials or aws_imds or azure_imds or gcp_imds or aws_cli_usage or read_kubeconfig or aws_eks_service_account_token_accessed process",
+    "count": 8
   },
   {
-    "phrase": "let me know once you've verified the secret setup and i'll be happy to assist further",
-    "count": 2
+    "phrase": "check debug trace in skill creator, why mentee fail to create something, it should be able to think like youj , test the osascript",
+    "count": 8
   },
   {
-    "phrase": "there are no errors in the sending queues, but nothing appears in the log explorer",
-    "count": 2
+    "phrase": "please make sure mentee use as best as he can the second skillosascript  chromejs only when creating onty based on recording",
+    "count": 8
   },
   {
-    "phrase": "we have tried numerous configurations, but it seems that datadog rejects the logs",
-    "count": 2
+    "phrase": "note that osascript and chromejs is mandatory, but can you try to create the same testskill only with osascriptchromejs?",
+    "count": 8
   },
   {
-    "phrase": "service 'datadog security agent' datadog-security-agent could not be installed",
-    "count": 2
+    "phrase": "note that osascript and chromejs is mandatory, but can you try to create the same testskill only with osascriptchromejs",
+    "count": 8
   },
   {
-    "phrase": "i mean, does your subagent can achieve background running for some skills ?",
-    "count": 2
+    "phrase": "skill content, in top add a part to playing the skillplease add the field related to needed info based on the skill",
+    "count": 8
   },
   {
-    "phrase": "these logs are included in the attachment logs-from-datadog-agent-injected-",
-    "count": 2
+    "phrase": "also please when cliking on skill in skill creator, display in full page,the",
+    "count": 8
   },
   {
-    "phrase": "i mean, does your subagent can achieve background running for some skills",
-    "count": 2
+    "phrase": "this skill follow cusoeranbthrouc redomendation and best practice ?",
+    "count": 8
   },
   {
-    "phrase": "however, we are experiencing issues with kubernetes monitoring visibility",
-    "count": 2
+    "phrase": "please add the cli version for both gcp and azure with auth status",
+    "count": 8
   },
   {
-    "phrase": "kubectl get configmap otel-collector-conf-auditoria -n monitoring -o yaml",
-    "count": 2
+    "phrase": "this skill follow cusoeranbthrouc redomendation and best practice",
+    "count": 8
   },
   {
-    "phrase": "service 'datadog trace agent' datadog-trace-agent could not be installed",
-    "count": 2
+    "phrase": "stringify passed: false, error: ''authentication required",
+    "count": 8
   },
   {
-    "phrase": "hum i need to think about that, can you test the zendesk skill now",
-    "count": 2
+    "phrase": "dog in chrome and log in manually, then re-run the skill",
+    "count": 8
   },
   {
-    "phrase": "i manually had to change the cluster agent deployment to use the 7",
-    "count": 2
+    "phrase": "what do you think of this skill? skill.md 1-121",
+    "count": 8
   },
   {
-    "phrase": "msi s 30:90 11:13:32:778: product: datadog agent -- error 1923",
-    "count": 2
+    "phrase": "stringify passed: false, error: ''http ''  xhr",
+    "count": 8
   },
   {
-    "phrase": "don't hesitate to share all the ran commands, so i can verify",
-    "count": 2
+    "phrase": "return error: no tab found with support-admin",
+    "count": 8
   },
   {
-    "phrase": "service 'datadog agent' datadogagent could not be installed",
-    "count": 2
+    "phrase": "osascript -e 'tell application google chrome",
+    "count": 8
   },
   {
-    "phrase": "but i need to create a skill to achieve that, possible ?",
-    "count": 2
+    "phrase": "set result to execute t javascript function ",
+    "count": 8
   },
   {
-    "phrase": "kubectl logs -n monitoring -l appopentelemetry --tail200",
-    "count": 2
+    "phrase": "generation failed  no response from model",
+    "count": 8
   },
   {
-    "phrase": "but i need to create a skill to achieve that, possible",
-    "count": 2
+    "phrase": "skill test verified with real execution",
+    "count": 8
   },
   {
-    "phrase": "based on the chat, here what i was able to understand:",
-    "count": 2
+    "phrase": "set active tab index of w to index of t",
+    "count": 8
   },
   {
-    "phrase": "kubectl describe pod -n monitoring -l appopentelemetry",
-    "count": 2
+    "phrase": "if url of t contains support-admin",
+    "count": 8
   },
   {
-    "phrase": "the correct documentation to follow is https:docs",
-    "count": 2
-  },
-  {
-    "phrase": "2which documentation you have followed so far",
-    "count": 2
-  },
-  {
-    "phrase": "please add the default manifest for operator",
-    "count": 2
-  },
-  {
-    "phrase": "thanks for your time during this chat,",
-    "count": 2
-  },
-  {
-    "phrase": "can the auto trigger run evey x time?",
-    "count": 2
-  },
-  {
-    "phrase": "thank you in advance for your support",
-    "count": 2
-  },
-  {
-    "phrase": "in minikube to answer this questions:",
-    "count": 2
+    "phrase": "what do you think of this skill",
+    "count": 8
   }
 ]

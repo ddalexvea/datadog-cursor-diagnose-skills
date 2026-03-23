@@ -5,6 +5,10 @@ kanban: true
 kanban_columns: triage,investigation
 ---
 
+## Parameters
+Ticket ID: `{{TICKET_ID}}`
+
+
 # Estimate Needed Customer Info
 
 Analyzes a Zendesk ticket to determine what diagnostic information is still missing from the customer, based on the product area's troubleshooting guide in Confluence.
