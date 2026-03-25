@@ -13,17 +13,17 @@ Servers that require secrets (API keys, tokens) use `${OP_*}` env vars which tri
 
 ### Check status
 ```bash
-~/.cursor/load-mcp-secrets.sh status
+~/.cursor/skills/1password-mcp-secrets/load-mcp-secrets.sh status
 ```
 
 ### Enable a server (injects secrets + activates)
 ```bash
-~/.cursor/load-mcp-secrets.sh enable <server-name>
+~/.cursor/skills/1password-mcp-secrets/load-mcp-secrets.sh enable <server-name>
 ```
 
 ### Disable a server (removes secrets + deactivates)
 ```bash
-~/.cursor/load-mcp-secrets.sh disable <server-name>
+~/.cursor/skills/1password-mcp-secrets/load-mcp-secrets.sh disable <server-name>
 ```
 
 Always run `status` first to see available servers and their current state.
