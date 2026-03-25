@@ -1,11 +1,11 @@
 ---
 name: mcp-manager
-description: Enable or disable MCP servers with 1Password secret management. Use when the user asks to enable/disable MCP servers, check MCP status, manage MCP secrets, or mentions github/postman/glean MCP.
+description: Enable or disable MCP servers. Use when the user asks to enable/disable MCP servers, check MCP status, or mentions github/postman/glean MCP.
 ---
 
 # MCP Server Manager
 
-Manages MCP servers in `~/.cursor/mcp.json` with automatic 1Password secret injection.
+Manages MCP servers in `~/.cursor/mcp.json`.
 
 ## When to Use
 
@@ -22,34 +22,27 @@ Manages MCP servers in `~/.cursor/mcp.json` with automatic 1Password secret inje
 ~/.cursor/load-mcp-secrets.sh status
 ```
 
-### Enable a server (injects 1Password secrets + sets disabled:false)
+### Enable a server
 ```bash
 ~/.cursor/load-mcp-secrets.sh enable <server-name>
 ```
 
-### Disable a server (removes secrets + sets disabled:true)
+### Disable a server
 ```bash
 ~/.cursor/load-mcp-secrets.sh disable <server-name>
 ```
 
 ## Available Servers
 
-| Server | Needs secrets | Purpose |
-|--------|-------------|---------|
-| `postman-api-mcp` | Yes (Postman API Key) | Postman collections |
-| `github` | Yes (GitHub PAT) | GitHub repos (ddalexvea) |
-| `github-2` | Yes (GitHub PAT) | GitHub repos (secondary) |
-| `playwright` | No | Browser automation |
-| `kubernetes` | No | kubectl operations |
-| `helm` | No | Helm chart management |
-| `support-admin` | No | Zendesk Support Admin |
-| `glean_ai-code` | No | Glean AI code search |
-| `atlassian` | No | Jira/Confluence |
-| `pixellab` | No | Pixel art generation |
-
-## Important
-
-- Servers with `${OP_*}` env vars trigger 1Password popups on Cursor reload
-- This script removes those refs when disabling, adds them back when enabling
-- 1Password CLI integration is OFF in 1Password app settings — secrets only resolve via `op read` when the script runs
-- Always disable servers you're not using to avoid popup storms
+| Server | Purpose |
+|--------|---------|
+| `postman-api-mcp` | Postman collections |
+| `github` | GitHub repos (ddalexvea) |
+| `github-2` | GitHub repos (secondary) |
+| `playwright` | Browser automation |
+| `kubernetes` | kubectl operations |
+| `helm` | Helm chart management |
+| `support-admin` | Zendesk Support Admin |
+| `glean_ai-code` | Glean AI code search |
+| `atlassian` | Jira/Confluence |
+| `pixellab` | Pixel art generation |
