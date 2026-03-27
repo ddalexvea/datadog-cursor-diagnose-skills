@@ -366,6 +366,7 @@ After appending the new entry, update the `## Customer Response Draft` and `## I
 If the ticket status has changed since the header was written (e.g. Open → Pending → Solved), update the `| **Status** |` row in the Ticket Summary table to reflect the current status.
 
 ## Rules
+- **CRITICAL: You MUST write to the investigation file before exiting. Outputting text is not enough — the file MUST be updated with `## Investigation` content and `## Investigation Decision`. If the file already has content from triage, append a new `## Investigation` timeline entry and add/update `## Investigation Decision` at the end. A response without file writes is considered a failure.**
 - Keep it factual — only include what you found, don't speculate
 - If no similar tickets found, say so
 - If no docs found, say so
