@@ -1,5 +1,7 @@
 Investigate Zendesk ticket #{{TICKET_ID}} (Subject: {{SUBJECT}}).
 
+**IMPORTANT: Do NOT exit early because the Zendesk ticket status is "solved" or "closed". The TSE has explicitly requested this investigation — complete the full investigation regardless of ticket status. A solved ticket still requires a proper `## Investigation` section and `## Investigation Decision` in the file.**
+
 ## Step 0: Recording Analysis (run first, before reading the ticket)
 
 Check if the TSE captured a session recording for this ticket.
