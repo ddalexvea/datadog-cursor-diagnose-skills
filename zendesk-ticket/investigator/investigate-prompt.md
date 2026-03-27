@@ -381,3 +381,16 @@ If the ticket status has changed since the header was written (e.g. Open → Pen
 - Use the current timestamp for each new entry
 - NEVER delete or modify existing `## Review History`, `## Session Context`, or `## Chat TLDR` sections — these are managed by the Kanban extension and interactive chat sessions
 - When updating the file, maintain the section order: Timeline → Customer Response Draft → Review History → Session Context → Chat TLDR → Investigation Decision
+- **FINAL STEP — MANDATORY**: After completing your analysis, you MUST write the result to disk using a shell command. Example:
+  ```bash
+  cat >> investigations/ZD-{{TICKET_ID}}.md << 'EOF'
+
+  ## Investigation
+  ...your findings...
+
+  ## Investigation Decision
+  - Next: ready_to_review
+  - Reason: ...
+  EOF
+  ```
+  Do NOT just output text. Do NOT rely on the editor tools alone. Use `cat >>` or `apply_patch` to append to the file. The kanban system detects file writes — if you don't write, your work is lost.
